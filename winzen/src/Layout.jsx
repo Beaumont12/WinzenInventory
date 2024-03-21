@@ -7,7 +7,7 @@ const Layout = ({ children }) => {
     <div className="flex h-screen" style={{ backgroundImage: `url(${Logo})`, backgroundSize: 'cover', backgroundPosition: 'center', backgroundRepeat: 'no-repeat' }}>
       <Sidebar />
       <div className="flex-1 overflow-y-auto bg-white">
-        <div className="p-4 my-2 ml-60">
+        <div className="ml-60">
           {children}
         </div>
       </div>

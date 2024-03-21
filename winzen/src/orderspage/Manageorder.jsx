@@ -69,8 +69,29 @@ const Manageorder = () => {
   };
 
   return (  
-    <div className="flex-1 rounded-lg bg-gradient-to-t to-gray-400 from-white bg-cover bg-center bg-no-repeat">
-      <div className="p-4 my-2">
+    <div className="flex-1 bg-gradient-to-t to-gray-400 from-white bg-cover bg-center bg-no-repeat" style={{ scrollBehavior: 'smooth'}}>
+      <style>
+            {`
+              ::-webkit-scrollbar {
+                width: 10px;
+                height: 5px;
+              }
+
+              ::-webkit-scrollbar-track {
+                background: transparent;
+              }
+
+              ::-webkit-scrollbar-thumb {
+                background: linear-gradient(180deg, rgba(165,164,168,1) 0%, rgba(190,190,195,1) 35%, rgba(255,255,255,1) 100%);
+                border-radius: 0px;
+              }
+
+              ::-webkit-scrollbar-thumb:hover {
+                background: #555;
+              }
+            `}
+          </style>
+      <div className="p-4">
         <h1 className="text-4xl md:text-6xl text-center font-bold text-white mt-2">Ongoing Orders</h1>
         <h3 className="text-lg md:text-base text-center mt-4 md:mt-8 font-semibold bg-teal-800 text-white">PLEASE MAKE SURE TO DOUBLE CHECK</h3>
         <div className="mt-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">

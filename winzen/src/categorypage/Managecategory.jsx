@@ -138,8 +138,29 @@ const Managecategory = () => {
   };    
 
   return (
-    <div className="flex-1 bg-gradient-to-t to-gray-400 bg-opacity-20 from-white bg-cover bg-center bg-no-repeat rounded-lg h-screen">
-      <div className="p-4 my-2">
+    <div className="flex-1 bg-gradient-to-t to-gray-400 bg-opacity-20 from-white bg-cover bg-center bg-no-repeat h-screen">
+      <style>
+            {`
+              ::-webkit-scrollbar {
+                width: 10px;
+                height: 5px;
+              }
+
+              ::-webkit-scrollbar-track {
+                background: transparent;
+              }
+
+              ::-webkit-scrollbar-thumb {
+                background: linear-gradient(180deg, rgba(165,164,168,1) 0%, rgba(190,190,195,1) 35%, rgba(255,255,255,1) 100%);
+                border-radius: 0px;
+              }
+
+              ::-webkit-scrollbar-thumb:hover {
+                background: #555;
+              }
+            `}
+          </style>
+      <div className="p-4">
         <h1 className="text-6xl text-center text-white font-bold mt-2">Manage Category</h1>
         <h3 className="text-lg text-center text-gray-200 mt-4 md:mt-8 font-semibold bg-teal-800">Edit at your own Risk</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-8 mt-8">
