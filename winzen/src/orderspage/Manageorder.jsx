@@ -69,20 +69,20 @@ const Manageorder = () => {
   };
 
   return (  
-    <div className="flex-1 bg-gray-200 bg-cover bg-center bg-no-repeat">
+    <div className="flex-1 rounded-lg bg-gradient-to-t to-gray-400 from-white bg-cover bg-center bg-no-repeat">
       <div className="p-4 my-2">
-        <h1 className="text-4xl md:text-6xl text-center font-bold">Ongoing Orders</h1>
-        <h3 className="text-lg md:text-base text-center mt-4 md:mt-8 font-semibold bg-yellow-600 text-white">PLEASE MAKE SURE TO DOUBLE CHECK</h3>
+        <h1 className="text-4xl md:text-6xl text-center font-bold text-white mt-2">Ongoing Orders</h1>
+        <h3 className="text-lg md:text-base text-center mt-4 md:mt-8 font-semibold bg-teal-800 text-white">PLEASE MAKE SURE TO DOUBLE CHECK</h3>
         <div className="mt-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {Object.entries(orders).map(([orderNumber, order]) => (
-            <div key={orderNumber} className="border border-gray-500 p-4 mb-4 order-slip-bg"> {/* Add custom class for order slip background */}
-              <h3 className="text-lg md:text-2xl font-semibold mb-4 text-center">Order Slip</h3>
+            <div key={orderNumber} className="rounded-lg border border-gray-500 p-4 mb-4 order-slip-bg"> {/* Add custom class for order slip background */}
+              <h3 className="text-lg md:text-2xl font-semibold mb-4 text-center bg-yellow-500 text-white">Order Slip</h3>
               <div className="flex justify-between mb-4">
                 <p className="text-sm md:text-base font-bold">Order #: {orderNumber}</p> {/* Display order number here */}
                 <p className='text-sm md:text-sm text-end'>{order.OrderDateTime}</p>
               </div>
               <div className="flex justify-between mb-4">
-                <p className="text-sm md:text-base">Customer: {order.CustomerName}</p>
+                <p className="text-sm md:text-base font-bold">Customer: {order.CustomerName}</p>
                 <p className="text-sm md:text-base">Staff: {order.StaffName}</p>
               </div>
               <hr className="my-2" />
@@ -94,7 +94,7 @@ const Manageorder = () => {
                     .map(key => (
                       <li key={key} className="mb-2">
                         <p className="text-xs md:text-base">{order[key].ProductName}</p>
-                        <p className="text-xs md:text-sm">Price: ${order[key].Price}</p>
+                        <p className="text-xs md:text-sm">Price: &#8369;{order[key].Price}</p>
                         <p className="text-xs md:text-sm">Quantity: {order[key].Quantity}</p>
                         <p className="text-xs md:text-sm">Size: {order[key].Size}</p>
                       </li>
@@ -103,16 +103,18 @@ const Manageorder = () => {
               </div>
               <hr className="my-4" />
               <div className="flex justify-between">
-                <p className="text-sm md:text-base font-semibold">Subtotal: ${order.Subtotal}</p>
-                <p className="text-sm md:text-base font-semibold">Discount: ${order.Discount}</p>
-                <p className="text-sm md:text-base font-bold">Total: ${order.Total}</p>
+                <p className="text-sm md:text-base font-bold">Subtotal: &#8369;{order.Subtotal}</p>
+                <p className="text-sm md:text-base font-semibold">Discount: &#8369;{order.Discount}</p>
+              </div>
+              <div className="flex justify-between">
+                <p className="text-sm md:text-base font-bold mt-3">Total: &#8369;{order.Total}</p>
               </div>
               <hr className="my-4" />
               <div>
                 <p className="text-sm md:text-base text-center bg-yellow-500">{order.Preference}</p>
               </div>
               <div className="flex justify-center">
-                <button className="text-white bg-red-700 py-2 px-4 rounded-md mt-6" onClick={() => cancelOrder(orderNumber)}>Cancel Order</button>
+                <button className="text-white bg-red-800 py-2 px-4 rounded-md mt-6" onClick={() => cancelOrder(orderNumber)}>Cancel Order</button>
               </div>
             </div>
           ))}

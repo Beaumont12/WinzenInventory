@@ -33,9 +33,11 @@ const Managecategory = () => {
           const categoriesData = snapshot.val();
           const categoriesList = Object.keys(categoriesData).map(categoryId => ({
             id: categoryId,
-            name: categoriesData[categoryId].Name
+            name: categoriesData[categoryId].Name,
+            productCount: 0
           }));
           setCategories(categoriesList);
+          countProducts(categoriesList);
         } else {
           console.log("No categories available");
         }
@@ -47,6 +49,27 @@ const Managecategory = () => {
     fetchCategories();
   }, []);
 
+  const countProducts = async (categoriesList) => {
+    const db = getDatabase();
+    const productsRef = ref(db, 'products');
+    try {
+      const snapshot = await get(productsRef);
+      if (snapshot.exists()) {
+        const productsData = snapshot.val();
+        categoriesList.forEach(category => {
+          Object.values(productsData).forEach(product => {
+            if (product.Category === category.name) {
+              category.productCount++;
+            }
+          });
+        });
+        setCategories([...categoriesList]);
+      }
+    } catch (error) {
+      console.error("Error counting products:", error);
+    }
+  };
+
   const deleteCategory = async (categoryId) => {
     const confirmDelete = window.confirm("Are you sure you want to delete this category?");
     if (!confirmDelete) return;
@@ -55,7 +78,7 @@ const Managecategory = () => {
     const categoryRef = ref(db, `categories/${categoryId}`);
   
     try {
-      await remove(categoryRef); // Use remove function to delete the entire category node
+      await remove(categoryRef);
       setCategories(prevCategories => prevCategories.filter(category => category.id !== categoryId));
       console.log("Category deleted successfully");
     } catch (error) {
@@ -66,7 +89,7 @@ const Managecategory = () => {
   const openEditModal = (category) => {
     setEditedCategory({
       id: category.id,
-      newId: category.id, // Set both id and newId to the existing ID initially
+      newId: category.id,
       name: category.name
     });
     setEditModalOpen(true);
@@ -93,16 +116,13 @@ const Managecategory = () => {
     const categoryRef = ref(db, `categories/${editedCategory.id}`);
     
     try {
-      // First, delete the old category
       await update(categoryRef, {});
     
-      // Then, add the new category with the updated ID and name
       const newCategoryRef = ref(db, `categories/${editedCategory.newId}`);
       await update(newCategoryRef, {
         Name: editedCategory.name
       });
     
-      // Update the categories state with the edited category
       setCategories(prevCategories =>
         prevCategories.map(category =>
           category.id === editedCategory.id ? { ...category, id: editedCategory.newId, name: editedCategory.name } : category
@@ -118,43 +138,34 @@ const Managecategory = () => {
   };    
 
   return (
-    <div className="flex-1 bg-gray-200 bg-cover bg-center bg-no-repeat">
+    <div className="flex-1 bg-gradient-to-t to-gray-400 bg-opacity-20 from-white bg-cover bg-center bg-no-repeat rounded-lg h-screen">
       <div className="p-4 my-2">
-        <h1 className="text-6xl text-center font-bold">Manage Category!</h1>
-        <h3 className="text-2xl text-center mt-4 md:mt-8 font-semibold">Enjoy browsing!</h3>
-        <table className="mx-auto mt-8 border-collapse border border-gray-800 w-full text-center">
-          <thead>
-            <tr className="bg-gray-300">
-              <th className="px-4 py-2">Category ID</th>
-              <th className="px-4 py-2">Category Name</th>
-              <th className="px-4 py-2">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {categories.map(category => (
-              <tr key={category.id} className="bg-gray-200">
-                <td className="border border-gray-800 px-4 py-2">{category.id}</td>
-                <td className="border border-gray-800 px-4 py-2">{category.name}</td>
-                <td className="border border-gray-800 px-4 py-2">
-                <button className="text-white bg-yellow-600 py-1 px-2 rounded-md mr-2" onClick={() => openEditModal(category)}>
+        <h1 className="text-6xl text-center text-white font-bold mt-2">Manage Category</h1>
+        <h3 className="text-lg text-center text-gray-200 mt-4 md:mt-8 font-semibold bg-teal-800">Edit at your own Risk</h3>
+        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-8 mt-8">
+          {categories.map(category => (
+            <div key={category.id} className="bg-white border border-gray-500 rounded-xl p-4 flex flex-col justify-center items-center text-center shadow-md">
+              <div className="text-teal-900 font-bold text-2xl mb-1 mt-2">{category.name}</div>
+              <div className="text-white font-semibold text-xs bg-yellow-500 rounded-xl p-1">{category.id}</div>
+              <div className="text-gray-700 font-bold text-xl mt-1">{category.productCount}</div>
+              <div className="mt-4">
+                <button className="text-white bg-emerald-400 py-1 px-2 rounded-lg mr-2" onClick={() => openEditModal(category)}>
                   <PencilIcon className="h-5 w-5" />
                 </button>
-
-                <button className="text-white bg-red-700 py-1 px-2 rounded-md" onClick={() => deleteCategory(category.id)}>
+                <button className="text-white bg-red-700 py-1 px-2 rounded-lg" onClick={() => deleteCategory(category.id)}>
                   <TrashIcon className="h-5 w-5" />
                 </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+              </div>
+            </div>
+          ))}
+        </div>
         {editModalOpen && (
           <div className="fixed top-0 left-0 w-full h-full bg-gray-600 bg-opacity-50 flex justify-center items-center">
             <div className="bg-white p-4 rounded-md">
               <h2 className="text-xl font-semibold mb-4">Edit Category</h2>
               <div className="mb-4">
                 <label className="block mb-2">Category ID:</label>
-                <input type="text" name="newId" value={editedCategory.newId} onChange={handleInputChange} className="w-full px-3 py-2 border border-gray-300 rounded-md" />
+                <input type="text" name="newId" value={editedCategory.newId} onChange={handleInputChange} className="w-full px-3 py-2 border border-gray-300 rounded-md" disabled />
               </div>
               <div className="mb-4">
                 <label className="block mb-2">Category Name:</label>
