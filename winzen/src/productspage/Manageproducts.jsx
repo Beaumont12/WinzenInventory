@@ -27,6 +27,7 @@ const ManageProducts = () => {
   const [newSize, setNewSize] = useState('');
   const [newPrice, setNewPrice] = useState('');
   const [showAddForm, setShowAddForm] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     loadCategories();
@@ -168,9 +169,12 @@ const ManageProducts = () => {
   const handleUpdateProduct = () => {
     console.log("Selected Size:", newSize);
     console.log("New Price:", newPrice);
-    if ((selectedSize || newSize) && newPrice) {
+
+    const parsedNewPrice = parseInt(newPrice);
+
+    if ((selectedSize || newSize) && !isNaN(parsedNewPrice)) {
       const updates = {
-        [(selectedSize || newSize)]: newPrice
+        [(selectedSize || newSize)]: parsedNewPrice
       };
       updateProduct(updates);
     } else {
@@ -248,14 +252,19 @@ const ManageProducts = () => {
       }
     }
   };  
-  
-  const filteredProducts =
-    selectedCategory === 'All'
-      ? products
-      : products.filter((product) => product.Category === selectedCategory);
 
+  const handleSearchInputChange = (event) => {
+    setSearchQuery(event.target.value); // Update search query state
+  };
+
+  const filteredProducts = products.filter((product) => {
+    const categoryMatch = selectedCategory === 'All' || product.Category === selectedCategory;
+    const searchMatch = product.Name.toLowerCase().includes(searchQuery.toLowerCase());
+    return categoryMatch && searchMatch;
+  });
+  
       return (
-        <div className="flex-1 bg-gradient-to-t from-white to-gray-400 bg-cover bg-center bg-no-repeat h-screen">
+        <div className="flex-1 bg-white bg-cover bg-center bg-no-repeat h-screen">
           <style>
             {`
               ::-webkit-scrollbar {
@@ -278,12 +287,20 @@ const ManageProducts = () => {
             `}
           </style>
           <div className="p-4">
-            <h1 className="text-6xl text-center mt-2 font-bold text-white">
-              Manage Products!
+            <h1 className="text-6xl text-center mt-2 font-bold text-black">
+              Manage Products
             </h1>
-            <h3 className="text-lg bg-teal-800 text-gray-200 text-center mt-4 md:mt-8 font-semibold">
-              Edit Products Only When Necessary
+            <h3 className="text-lg md:text-base bg-teal-800 text-gray-200 text-center mt-4 md:mt-8 font-semibold">
+              EDIT PRODUCTS ONLY WHEN NECESSARY
             </h3>
+            <hr className="my-4 border-gray-500 border-2" />
+              <input
+                type="text"
+                placeholder="Search products by name"
+                value={searchQuery}
+                onChange={handleSearchInputChange}
+                className="px-4 py-2 text-lg rounded-md bg-gray-200 focus:outline-none focus:ring focus:border-blue-300 w-1/2 pr-10">
+                </input>
             <hr className="my-4 border-gray-500 border-2" />
             <div className="flex mt-2 mb-2 overflow-x-auto p-2" style={{ scrollBehavior: 'smooth', background: 'transparent' }}>
             <style>
@@ -333,11 +350,11 @@ const ManageProducts = () => {
               ))}
             </div>
             {filteredProducts.length > 0 ? (
-              <div className="mt-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="mt-2 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {filteredProducts.map((product, index) => (
                   <div key={index} className="relative">
                     {/* Product card container */}
-                    <div className="rounded-lg border border-gray-500 p-4 mb-4 order-slip-bg cursor-pointer">
+                    <div className="rounded-lg bg-gray-100 border border-gray-300 p-4 mb-4 shadow-gray-300 shadow-lg order-slip-bg cursor-pointer">
                       {/* Product details */}
                       <div onClick={() => showProductDetails(product)}>
                         <p className="text-sm md:text-base font-bold">{product.Name}</p>
@@ -347,7 +364,7 @@ const ManageProducts = () => {
                         <img
                           src={product.imageURL}
                           alt={product.Name}
-                          className="w-full h-auto mt-2"
+                          className="w-full h-auto mt-2 rounded-lg"
                         />
                       </div>
                       {/* Delete button positioned absolute */}
@@ -374,9 +391,9 @@ const ManageProducts = () => {
 
             {selectedProduct && (
               <div className="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50">
-                <div className="bg-white p-8 rounded-lg overflow-y-auto" style={{ width: '80%', height: '80%' }}>
-                  <div className="flex justify-between">
-                    <h2 className="text-3xl font-bold mt-10 text-emerald-900 bg-gray-200 p-2 mb-2 rounded-lg">
+                <div className="bg-gray-100 p-8 rounded-lg overflow-y-auto" style={{ width: '70%', height: '80%' }}>
+                  <div className="flex justify-between m-4">
+                    <h2 className="text-3xl font-extrabold mt-10 mx-6 text-white bg-gray-700 p-2 mb-2 rounded-lg">
                       {selectedProduct.Name}
                     </h2>
                     <div>
@@ -403,15 +420,15 @@ const ManageProducts = () => {
                       </button>
                     </div>
                   </div>
-                  <div className="mt-4 flex justify-between">
-                    <div className="w-1/3">
+                  <div className="mt-4 flex justify-between m-10">
+                    <div className="w-1/3 mr-4">
                       <img
                         src={selectedProduct.imageURL}
                         alt="Product"
-                        className="w-full h-auto"
+                        className="w-full h-auto rounded-lg"
                       />
                     </div>
-                    <div className="w-2/3">
+                    <div className="w-2/3 mx-10">
                       <p className="font-bold">
                         Category: {selectedProduct.Category}
                       </p>
@@ -465,7 +482,7 @@ const ManageProducts = () => {
                           <button className="mt-10 text-white bg-blue-600 px-3 py-2 rounded-md" onClick={handleAddFormToggle}>Add Size</button>
                         )}
                         {editMode && showAddForm && (
-                          <div className="flex items-center mt-10">
+                          <div className="flex items-center mt-10 ">
                             <input
                               type="text"
                               placeholder="New Size"
@@ -499,7 +516,7 @@ const ManageProducts = () => {
                     </div>
                   </div>
                   {editMode && (
-                    <div className="mt-10">
+                    <div className="mt-10 mx-10">
                       <label className="font-bold">Select Size:</label>
                       <select
                         value={selectedSize}

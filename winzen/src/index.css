@@ -18,10 +18,12 @@
     transform: translateX(5px) rotate(5deg);
   }
   
-  /* Custom CSS for order slip background */
-.order-slip-bg {
-  background-color: #ffffff; 
-}
+  .ReactCrop__image {
+    max-width: 100%;
+    max-height: 200px;
+    object-fit: contain;
+  }
+  
 /* Add these styles to your CSS file */
 .modal {
   display: none; /* Hide the modal by default */

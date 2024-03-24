@@ -19,6 +19,7 @@ const app = initializeApp(firebaseConfig);
 const Manageorder = () => {
   const [orders, setOrders] = useState([]);
   const [cancellationStatus, setCancellationStatus] = useState(null);
+  const [orderType, setOrderType] = useState('All');
 
   useEffect(() => {
     const fetchOrders = async () => {
@@ -68,8 +69,18 @@ const Manageorder = () => {
     }
   };
 
+  const filterOrdersByType = (order) => {
+    if (orderType === 'All') {
+      return true; // Show all orders
+    } else if (orderType === 'Dine In') {
+      return order.Preference === 'Dine In'; // Show only dine-in orders
+    } else if (orderType === 'Take Out') {
+      return order.Preference === 'Take Out'; // Show only take-out orders
+    }
+  };  
+
   return (  
-    <div className="flex-1 bg-gradient-to-t to-gray-400 from-white bg-cover bg-center bg-no-repeat" style={{ scrollBehavior: 'smooth'}}>
+    <div className="flex-1 bg-white bg-cover bg-center bg-no-repeat" style={{ scrollBehavior: 'smooth'}}>
       <style>
             {`
               ::-webkit-scrollbar {
@@ -92,11 +103,36 @@ const Manageorder = () => {
             `}
           </style>
       <div className="p-4">
-        <h1 className="text-4xl md:text-6xl text-center font-bold text-white mt-2">Ongoing Orders</h1>
-        <h3 className="text-lg md:text-base text-center mt-4 md:mt-8 font-semibold bg-teal-800 text-white">PLEASE MAKE SURE TO DOUBLE CHECK</h3>
-        <div className="mt-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {Object.entries(orders).map(([orderNumber, order]) => (
-            <div key={orderNumber} className="rounded-lg border border-gray-500 p-4 mb-4 order-slip-bg"> {/* Add custom class for order slip background */}
+        <h1 className="text-4xl md:text-6xl text-center font-bold text-black mt-2">Ongoing Orders</h1>
+        <h3 className="text-lg md:text-base text-center mt-4 md:mt-8 font-semibold bg-teal-800 text-gray-200">PLEASE MAKE SURE TO DOUBLE CHECK</h3>
+        <hr className="my-4 border-gray-500 border-2" />
+        <div className="flex justify-start mb-4">
+          {/* Toggle buttons for filtering orders */}
+          <button
+            className={`bg-red-500 text-white px-4 py-2 rounded-md mr-4 ${orderType === 'All' ? 'bg-red-700' : ''}`}
+            onClick={() => setOrderType('All')}
+          >
+            All
+          </button>
+          <button
+            className={`bg-blue-500 text-white px-4 py-2 rounded-md mr-4 ${orderType === 'Dine In' ? 'bg-blue-700' : ''}`}
+            onClick={() => setOrderType('Dine In')}
+          >
+            Dine In
+          </button>
+          <button
+            className={`bg-blue-500 text-white px-4 py-2 rounded-md ${orderType === 'Take Out' ? 'bg-blue-700' : ''}`}
+            onClick={() => setOrderType('Take Out')}
+          >
+            Take Out
+          </button>
+        </div>
+        <hr className="my-4 border-gray-500 border-2" />
+        <div className="mt-2 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {Object.entries(orders)
+          .filter(([orderNumber, order]) => filterOrdersByType(order)) // Filter orders based on order type
+          .map(([orderNumber, order]) => (
+            <div key={orderNumber} className="rounded-lg shadow-lg bg-gray-100 border border-gray-300 p-4 mb-4 mt-2"> {/* Add custom class for order slip background */}
               <h3 className="text-lg md:text-2xl font-semibold mb-4 text-center bg-yellow-500 text-white">Order Slip</h3>
               <div className="flex justify-between mb-4">
                 <p className="text-sm md:text-base font-bold">Order #: {orderNumber}</p> {/* Display order number here */}

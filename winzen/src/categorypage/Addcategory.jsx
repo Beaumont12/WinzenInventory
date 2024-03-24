@@ -72,17 +72,17 @@ const AddCategory = () => {
   };  
 
   return (
-    <div className="flex-1 bg-gradient-to-t to-gray-400 from-white bg-opacity-20 bg-cover bg-center bg-no-repeat h-screen">
+    <div className="flex-1 bg-white bg-opacity-20 bg-cover bg-center bg-no-repeat h-screen">
       <div className="p-4">
-        <h1 className="text-6xl text-white text-center mt-2 font-bold ">Add Category</h1>
-        <h3 className="text-lg text-gray-200 text-center mt-4 md:mt-8 font-semibold bg-teal-800">Make sure Category ID is Unique</h3>
+        <h1 className="text-6xl text-black text-center mt-2 font-bold ">Add Category</h1>
+        <h3 className="text-lg md:text-base text-gray-200 text-center mt-4 md:mt-8 font-semibold bg-teal-800">MAKE SURE CATEGORY ID IS UNIQUE</h3>
 
         <div className="mt-8 mx-auto max-w-md">
-          <div className="bg-white shadow-md rounded-lg px-8 pt-6 pb-8 mb-4">
+          <div className="bg-gray-100 shadow-lg shadow-gray-300 border border-gray-300 rounded-lg px-8 pt-6 pb-8 mb-4">
             <p className="text-gray-800 text-base font-semibold mb-2">Category ID:</p>
             <input
               type="text"
-              placeholder="Enter category ID"
+              placeholder="Enter category ID (ex: category_1)"
               className="block w-full px-4 py-2 text-gray-800 bg-white border border-gray-300 rounded-md focus:outline-none focus:border-emerald-500 mb-4"
               value={categoryId}
               onChange={(e) => setCategoryId(e.target.value)}
