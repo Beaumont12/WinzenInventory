@@ -10,6 +10,7 @@ import Manageproducts from './productspage/Manageproducts';
 import Addproducts from './productspage/Addproducts';
 import Overallsale from './salespage/Overallsale';
 import Manageuser from './userspage/Manageuser';
+import Adduser from './userspage/Adduser';
 import Layout from './Layout'; // Import the Layout component
 
 function App() {
@@ -18,7 +19,7 @@ function App() {
     return localStorage.getItem('isLoggedIn') === 'true';
   });
 
-  // Function to handle login
+  // Function to handle loginz
   const handleLogin = () => {
     // Perform login logic
     localStorage.setItem('isLoggedIn', 'true');
@@ -141,6 +142,18 @@ function App() {
             isLoggedIn ? (
               <Layout>
                 <History />
+              </Layout>
+            ) : (
+              <Navigate to="/" />
+            )
+          }
+        />
+        <Route
+          path="/add-users"
+          element={
+            isLoggedIn ? (
+              <Layout>
+                <Adduser />
               </Layout>
             ) : (
               <Navigate to="/" />

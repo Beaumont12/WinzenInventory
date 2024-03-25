@@ -25,7 +25,7 @@ const ManageProducts = () => {
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [editMode, setEditMode] = useState(false);
   const [newSize, setNewSize] = useState('');
-  const [newPrice, setNewPrice] = useState('');
+  const [newPrice, setNewPrice] = useState(0);
   const [showAddForm, setShowAddForm] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -80,7 +80,7 @@ const ManageProducts = () => {
 
   const handleTemperatureChange = (temperature) => {
     setSelectedTemperature(temperature);
-    setSelectedSize('');
+    setSelectedSize(0);
   };
 
   const handleSizeClick = (size) => {
@@ -128,8 +128,14 @@ const ManageProducts = () => {
     const db = getDatabase();
     const productRef = ref(db, `products/${selectedProduct.id}/Variations/temperature/${selectedTemperature}`);
   
+    // Parse price values as integers
+    const parsedUpdates = {};
+    for (const [key, value] of Object.entries(updates)) {
+      parsedUpdates[key] = parseInt(value);
+    }
+  
     // Send updates to the database
-    update(productRef, updates)
+    update(productRef, parsedUpdates)
       .then(() => {
         // Update local state after successful database update
         setProducts((prevProducts) => {
@@ -138,7 +144,7 @@ const ManageProducts = () => {
               // Update the price in the local state
               const updatedVariations = {
                 ...product.Variations.temperature[selectedTemperature],
-                ...updates
+                ...parsedUpdates
               };
               return {
                 ...product,
@@ -164,21 +170,29 @@ const ManageProducts = () => {
       .catch((error) => {
         console.error('Error updating product:', error);
       });
-  };
+  };  
   
   const handleUpdateProduct = () => {
     console.log("Selected Size:", newSize);
     console.log("New Price:", newPrice);
-
+    
+    // Parse the new price as an integer
     const parsedNewPrice = parseInt(newPrice);
-
-    if ((selectedSize || newSize) && !isNaN(parsedNewPrice)) {
-      const updates = {
-        [(selectedSize || newSize)]: parsedNewPrice
-      };
-      updateProduct(updates);
+  
+    // Check if the parsed price is a valid number
+    if (!isNaN(parsedNewPrice)) {
+      // Check if either selectedSize or newSize is provided
+      if (selectedSize || newSize) {
+        // Ensure that the price is stored as an integer
+        const updates = {
+          [selectedSize || newSize]: parsedNewPrice
+        };
+        updateProduct(updates);
+      } else {
+        console.log("Selected size is required.");
+      }
     } else {
-      console.log("Selected size and new price are required.");
+      console.log("Invalid price. Please enter a valid number.");
     }
   };
   
@@ -190,6 +204,7 @@ const ManageProducts = () => {
 
   const handleAddFormToggle = () => {
     setShowAddForm(!showAddForm);
+    setNewPrice('');
   };
 
   const handleDeleteSize = (size) => {
@@ -491,7 +506,7 @@ const ManageProducts = () => {
                               className="mt-1 p-2 block w-1/2 border-black border-2 rounded-md focus:ring-indigo-500 focus:border-indigo-500 mr-4"
                             />
                             <input
-                              type="text"
+                              type="number"
                               placeholder="New Price"
                               value={newPrice}
                               onChange={(e) => setNewPrice(e.target.value)}
@@ -503,7 +518,7 @@ const ManageProducts = () => {
                                 if (newSize && newPrice) {
                                   updateProduct({ [newSize]: newPrice });
                                   setNewSize('');
-                                  setNewPrice('');
+                                  setNewPrice(0);
                                   setShowAddForm(false);
                                 }
                               }}

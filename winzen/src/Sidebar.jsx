@@ -10,11 +10,12 @@ const Sidebar = () => {
   };
 
   return (
-    <div className="fixed left-0 top-0 bg-emerald-900 w-60 h-full">
-      <div className="p-4">
-        <h1 className="text-white text-xl mt-3 font-bold">Relgin Paloma</h1>
+    <div className="fixed left-0 top-0 bg-emerald-900 w-55 h-full">
+      <div className="p-2">
+        <h1 className="text-white text-xl mt-3 mb-4 font-bold">Relgin Paloma</h1>
       </div>
-      <ul className="py-4 text-start">
+      <h3 className="text-white text-sm ml-2 mt-3 mb-1 font-semibold opacity-65">Main Menu</h3>
+      <ul className=" text-start">
         <NavLink to="/home" onClick={() => handleItemClick("Dashboard")}>
           <li 
             className={`px-4 py-2 text-white hover:bg-yellow-600 cursor-pointer font-semibold flex items-center transition duration-300 ease-in-out transform hover:scale-105 ${activeItem === "Dashboard" ? 'bg-yellow-600' : ''}`}
@@ -63,7 +64,7 @@ const Sidebar = () => {
             <span className="align-middle">Add Product</span>
           </li>
         </NavLink>
-        <hr className="my-4 mx-4 border border-white" />
+        <h3 className="text-white text-sm ml-2 mt-3 mb-1 font-semibold opacity-65">Reports</h3>
         <NavLink to="/transactions" onClick={() => handleItemClick("Transactions")}>
           <li 
             className={`px-4 py-2 text-white hover:bg-yellow-600 cursor-pointer font-semibold flex items-center transition duration-300 ease-in-out transform hover:scale-105 ${activeItem === "Transactions" ? 'bg-yellow-600' : ''}`}
@@ -80,13 +81,21 @@ const Sidebar = () => {
             <span className="align-middle">Sales Report</span>
           </li>
         </NavLink>
-        <hr className="my-4 mx-4 border border-white" />
+        <h3 className="text-white text-sm ml-2 mt-3 mb-1 font-semibold opacity-65">Users</h3>
         <NavLink to="/manage-users" onClick={() => handleItemClick("Manage Users")}>
           <li 
             className={`px-4 py-2 text-white hover:bg-yellow-600 cursor-pointer font-semibold flex items-center transition duration-300 ease-in-out transform hover:scale-105 ${activeItem === "Manage Users" ? 'bg-yellow-600' : ''}`}
           >
             <FaUserCog className="mr-3 icon" />
             <span className="align-middle">Manage Users</span>
+          </li>
+        </NavLink>
+        <NavLink to="/add-users" onClick={() => handleItemClick("Add Users")}>
+          <li 
+            className={`px-4 py-2 text-white hover:bg-yellow-600 cursor-pointer font-semibold flex items-center transition duration-300 ease-in-out transform hover:scale-105 ${activeItem === "Add Users" ? 'bg-yellow-600' : ''}`}
+          >
+            <FaUserCog className="mr-3 icon" />
+            <span className="align-middle">Add Users</span>
           </li>
         </NavLink>
       </ul>
