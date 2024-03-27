@@ -158,10 +158,10 @@ const History = () => {
             placeholder="Search products by order number"
             value={searchQuery}
             onChange={handleSearchInputChange}
-            className="px-4 py-2 text-lg rounded-md bg-gray-200 focus:outline-none focus:ring focus:border-blue-300 w-1/2 pr-10"
+            className="appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500 mb-4"
           />
           <hr className="my-4 border-gray-500 border-2" />
-          <div className="flex justify-between items-center p-4 my-4 bg-gray-200 rounded-lg shadow-md font-extrabold">
+          <div className="flex justify-between items-center p-4 my-4 bg-yellow-500 rounded-lg shadow-md font-extrabold">
             <span className="text-lg w-1/4 text-center">Order #</span>
             <span className="text-lg w-1/4 text-center">Staff Name</span>
             <span className="text-lg w-1/4 text-center">Quantity</span>

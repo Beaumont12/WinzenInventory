@@ -20,7 +20,7 @@ const Manageuser = () => {
   const [loading, setLoading] = useState(true);
   const [editingUser, setEditingUser] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
-  const [deleteUserId, setDeleteUserId] = useState(null); // State variable to track the ID of the user to delete
+  const [deleteUserId, setDeleteUserId] = useState(null);
   const [updatedUserData, setUpdatedUserData] = useState({
     Name: '',
     Email: '',
@@ -32,6 +32,8 @@ const Manageuser = () => {
       Year: ''
     }
   });
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filteredUsers, setFilteredUsers] = useState([]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -57,6 +59,14 @@ const Manageuser = () => {
 
     fetchData();
   }, []);
+
+  useEffect(() => {
+    // Filter users based on search query
+    const filteredResults = users.filter(user =>
+      user.Name.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+    setFilteredUsers(filteredResults);
+  }, [searchQuery, users]);
 
   const handleEditClick = (user) => {
     setEditingUser(user);
@@ -102,7 +112,7 @@ const Manageuser = () => {
   };
 
   const handleDeleteClick = (userId) => {
-    setDeleteUserId(userId); // Set the ID of the user to be deleted
+    setDeleteUserId(userId);
   };
 
   const confirmDeleteUser = () => {
@@ -110,20 +120,16 @@ const Manageuser = () => {
     const userRef = ref(db, `staffs/${deleteUserId}`);
     remove(userRef)
       .then(() => {
-        // Remove the user from the local state
         setUsers(users.filter(user => user.id !== deleteUserId));
-        setDeleteUserId(null); // Reset deleteUserId state
+        setDeleteUserId(null);
       })
       .catch((error) => {
         console.error('Error deleting user:', error);
       });
   };
-  
+
   const handleSaveChanges = () => {
-    // Validate if any required field is empty or undefined
-      // Debugging: Log updatedUserData object
     console.log('Updated user data:', updatedUserData);
-  
     const db = getDatabase();
     const userRef = ref(db, `staffs/${editingUser.id}`);
     update(userRef, {
@@ -137,7 +143,6 @@ const Manageuser = () => {
         Year: updatedUserData.Birthday.Year
       }
     }).then(() => {
-      // Update the user locally
       setUsers(users.map(user => {
         if (user.id === editingUser.id) {
           return { ...user, ...updatedUserData };
@@ -153,27 +158,57 @@ const Manageuser = () => {
   return (
     <div>
       <div className="flex-1 bg-white bg-cover bg-center bg-no-repeat h-screen">
-        <style>
-          {/* Scrollbar styling */}
-        </style>
+      <style>
+            {`
+              ::-webkit-scrollbar {
+                width: 10px;
+                height: 5px;
+              }
+
+              ::-webkit-scrollbar-track {
+                background: transparent;
+              }
+
+              ::-webkit-scrollbar-thumb {
+                background: linear-gradient(180deg, rgba(165,164,168,1) 0%, rgba(190,190,195,1) 35%, rgba(255,255,255,1) 100%);
+                border-radius: 0px;
+              }
+
+              ::-webkit-scrollbar-thumb:hover {
+                background: #555;
+              }
+            `}
+          </style>
         <div className="p-4">
           <h1 className="text-6xl text-center mt-2 font-bold">Manage Users</h1>
           <h3 className="text-lg md:text-base text-center text-gray-200 mt-4 md:mt-8 font-semibold bg-teal-800">EDIT ONLY WHEN NECESSARY</h3>
-          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-8 mt-8 border border-gray-300 rounded-lg shadow-lg">
+          {/* Search bar */}
+          <hr className="my-4 border-gray-500 border-2" />
+              <input
+                type="text"
+                placeholder="Search Staffs by Name"
+                value={searchQuery}
+                onChange={(e)=> setSearchQuery(e.target.value)}
+                className="appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500 mb-4">
+                </input>
+            <hr className="my-4 border-gray-500 border-2" />
+            <div className="grid grid-cols-1 p-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8 mt-4 border border-gray-300 rounded-lg shadow-lg">
             {loading ? (
               <p>Loading...</p>
             ) : (
-              users.map((user) => (
-                <div key={user.id} className="max-w-md w-full mx-4 my-4 bg-gray-200 rounded-lg shadow-md overflow-hidden">
-                  <div className="p-4">
-                    <div className="flex items-center">
-                      <div className="w-[56px] h-[56px] rounded-full mr-4 bg-cover" style={{ backgroundImage: `url(${user.ImageUrl})` }} />
+              filteredUsers.map((user) => (
+                <div key={user.id} className="bg-gray-100 rounded-lg shadow-md overflow-hidden">
+                  <div className="p-2">
+                    <div className="flex items-center mb-2">
+                    <div className="w-[56px] h-[56px] mr-2 rounded-full overflow-hidden">
+                      <div className="w-full h-full bg-center bg-cover" style={{ backgroundImage: `url(${user.ImageUrl})` }} />
+                    </div>
                       <div>
-                        <h2 className="text-lg text-black font-semibold">{user.Name}</h2>
+                        <h2 className="text-lg font-semibold">{user.Name}</h2>
                         <p className="text-sm text-gray-800 opacity-60">{user.Email}</p>
                       </div>
                     </div>
-                    <p className="mt-4 text-black">ID: {user.id}</p>
+                    <p className="text-sm text-gray-800 opacity-80">ID: {user.id}</p>
                     <p className="text-sm text-gray-800 opacity-80">Age: {user.Age}</p>
                     <p className="text-sm text-gray-800 opacity-80">Phone: {user.Phone}</p>
                     <p className="text-sm text-gray-800 opacity-80">Birthday: {user.Birthday.Month}/{user.Birthday.Date}/{user.Birthday.Year}</p>
@@ -247,7 +282,7 @@ const Manageuser = () => {
                   </div>
                 </div>
                 <div className="mt-4 flex justify-end">
-                  <button onClick={handleCloseModal} className="mr-2 bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded">
+                  <button onClick={handleCloseModal} className="mr-2 bg-red-700 hover:bg-gray-300 text-white font-bold py-2 px-4 rounded">
                     Cancel
                   </button>
                   <button onClick={handleSaveChanges} className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">

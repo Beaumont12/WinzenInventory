@@ -314,7 +314,7 @@ const ManageProducts = () => {
                 placeholder="Search products by name"
                 value={searchQuery}
                 onChange={handleSearchInputChange}
-                className="px-4 py-2 text-lg rounded-md bg-gray-200 focus:outline-none focus:ring focus:border-blue-300 w-1/2 pr-10">
+                className="appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500 mb-4">
                 </input>
             <hr className="my-4 border-gray-500 border-2" />
             <div className="flex mt-2 mb-2 overflow-x-auto p-2" style={{ scrollBehavior: 'smooth', background: 'transparent' }}>

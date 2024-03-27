@@ -1,18 +1,48 @@
 import React, { useState } from 'react';
-import { NavLink } from 'react-router-dom';
-import { FaChartBar, FaClipboardList, FaTasks, FaPlusSquare, FaExchangeAlt, FaMoneyCheckAlt, FaUserCog, FaHistory } from 'react-icons/fa'; // Import SVG icons from react-icons
+import { NavLink, useNavigate } from 'react-router-dom';
+import logo from './assets/images/logo1.png'
+import { FaSignOutAlt, FaChartBar, FaClipboardList, FaTasks, FaPlusSquare, FaExchangeAlt,FaUserCog, FaMoneyCheckAlt, FaUserPlus, FaHistory } from 'react-icons/fa'; // Import SVG icons from react-icons
 
-const Sidebar = () => {
+const Sidebar = ({ handleLogout }) => {
   const [activeItem, setActiveItem] = useState(null);
+  const navigate = useNavigate();
+
+  const handleLogoutClick = () => {
+    handleLogout(); // Call the handleLogout function passed from props
+    navigate('/'); // Redirect to login page
+  };
 
   const handleItemClick = (itemName) => {
     setActiveItem(itemName === activeItem ? null : itemName);
   };
 
   return (
-    <div className="fixed left-0 top-0 bg-emerald-900 w-55 h-full">
-      <div className="p-2">
-        <h1 className="text-white text-xl mt-3 mb-4 font-bold">Relgin Paloma</h1>
+    <div className="fixed left-0 top-0 bg-emerald-900 w-55 h-full overflow-y-auto">
+      <style>
+            {`
+              ::-webkit-scrollbar {
+                width: 10px;
+                height: 5px;
+              }
+
+              ::-webkit-scrollbar-track {
+                background: transparent;
+              }
+
+              ::-webkit-scrollbar-thumb {
+                background: linear-gradient(180deg, rgba(165,164,168,1) 0%, rgba(190,190,195,1) 35%, rgba(255,255,255,1) 100%);
+                border-radius: 0px;
+              }
+
+              ::-webkit-scrollbar-thumb:hover {
+                background: #555;
+              }
+            `}
+          </style>
+      <div>
+      <div className="p-2 flex items-center">
+        <img src={logo} alt="Winzen's Cafe Logo" className="w-12 h-auto mr-2" />
+        <h1 className="text-white text-xl font-bold">Winzen's Cafe</h1>
       </div>
       <h3 className="text-white text-sm ml-2 mt-3 mb-1 font-semibold opacity-65">Main Menu</h3>
       <ul className=" text-start">
@@ -94,11 +124,18 @@ const Sidebar = () => {
           <li 
             className={`px-4 py-2 text-white hover:bg-yellow-600 cursor-pointer font-semibold flex items-center transition duration-300 ease-in-out transform hover:scale-105 ${activeItem === "Add Users" ? 'bg-yellow-600' : ''}`}
           >
-            <FaUserCog className="mr-3 icon" />
+            <FaUserPlus className="mr-3 icon" />
             <span className="align-middle">Add Users</span>
           </li>
         </NavLink>
       </ul>
+    </div>
+    <div>
+      <button className="text-white text-sm bg-yellow-800 mt-16 mb-1 font-semibold px-1 py-2 border border-yellow-600 w-full flex items-center justify-center" onClick={handleLogoutClick}>
+        <FaSignOutAlt className="mr-2" /> {/* Icon */}
+        Logout
+      </button>
+    </div>
     </div>
   );
 };

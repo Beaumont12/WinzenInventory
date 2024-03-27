@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Home from '../src/homepage/Home';
 import LoginPage from './loginpage/LoginPage';
-import History from './historypage/History'
+import History from './historypage/History';
 import Managecategory from './categorypage/Managecategory';
 import Manageorder from './orderspage/Manageorder';
 import Addcategory from './categorypage/Addcategory';
@@ -19,7 +19,7 @@ function App() {
     return localStorage.getItem('isLoggedIn') === 'true';
   });
 
-  // Function to handle loginz
+  // Function to handle login
   const handleLogin = () => {
     // Perform login logic
     localStorage.setItem('isLoggedIn', 'true');
@@ -30,136 +30,42 @@ function App() {
   const handleLogout = () => {
     // Perform logout logic
     localStorage.removeItem('isLoggedIn');
-    setIsLoggedIn(false); // Update isLoggedIn state
+    setIsLoggedIn(false);
+    return <Navigate to="/" />;
+  };
+
+  // Function to render routes based on login status
+  const renderRoutes = () => {
+    if (isLoggedIn) {
+      return (
+        <>
+          <Route path="/home" element={<Layout handleLogout={handleLogout}><Home /></Layout>} />
+          <Route path="/orders" element={<Layout handleLogout={handleLogout}><Manageorder /></Layout>} />
+          <Route path="/manage-category" element={<Layout handleLogout={handleLogout}><Managecategory /></Layout>} />
+          <Route path="/add-category" element={<Layout handleLogout={handleLogout}><Addcategory /></Layout>} />
+          <Route path="/manage-product" element={<Layout handleLogout={handleLogout}><Manageproducts /></Layout>} />
+          <Route path="/add-product" element={<Layout handleLogout={handleLogout}><Addproducts /></Layout>} />
+          <Route path="/sales-report" element={<Layout handleLogout={handleLogout}><Overallsale /></Layout>} />
+          <Route path="/manage-users" element={<Layout handleLogout={handleLogout}><Manageuser /></Layout>} />
+          <Route path="/transactions" element={<Layout handleLogout={handleLogout}><History /></Layout>} />
+          <Route path="/add-users" element={<Layout handleLogout={handleLogout}><Adduser /></Layout>} />
+        </>
+      );
+    } else {
+      return (
+        <>
+          <Route path="/" element={<LoginPage handleLogin={handleLogin} />} />
+          {/* Fallback route to redirect to login page if not logged in */}
+          <Route path="*" element={<Navigate to="/" />} />
+        </>
+      );
+    }
   };
 
   return (
     <Router>
       <Routes>
-        {/* If isLoggedIn is true, redirect to the Home page, otherwise render the LoginPage */}
-        <Route path="/" element={isLoggedIn ? <Navigate to="/home" /> : <LoginPage handleLogin={handleLogin} />} />
-
-        {/* Use Layout component for routes that need a sidebar */}
-        <Route
-          path="/home"
-          element={
-            isLoggedIn ? (
-              <Layout>
-                <Home />
-              </Layout>
-            ) : (
-              <Navigate to="/" />
-            )
-          }
-        />
-        <Route
-          path="/orders"
-          element={
-            isLoggedIn ? (
-              <Layout>
-                <Manageorder />
-              </Layout>
-            ) : (
-              <Navigate to="/" />
-            )
-          }
-        />
-        <Route
-          path="/manage-category"
-          element={
-            isLoggedIn ? (
-              <Layout>
-                <Managecategory />
-              </Layout>
-            ) : (
-              <Navigate to="/" />
-            )
-          }
-        />
-        <Route
-          path="/add-category"
-          element={
-            isLoggedIn ? (
-              <Layout>
-                <Addcategory />
-              </Layout>
-            ) : (
-              <Navigate to="/" />
-            )
-          }
-        />
-        <Route
-          path="/manage-product"
-          element={
-            isLoggedIn ? (
-              <Layout>
-                <Manageproducts />
-              </Layout>
-            ) : (
-              <Navigate to="/" />
-            )
-          }
-        />
-        <Route
-          path="/add-product"
-          element={
-            isLoggedIn ? (
-              <Layout>
-                <Addproducts />
-              </Layout>
-            ) : (
-              <Navigate to="/" />
-            )
-          }
-        />
-        <Route
-          path="/sales-report"
-          element={
-            isLoggedIn ? (
-              <Layout>
-                <Overallsale />
-              </Layout>
-            ) : (
-              <Navigate to="/" />
-            )
-          }
-        />
-        <Route
-          path="/manage-users"
-          element={
-            isLoggedIn ? (
-              <Layout>
-                <Manageuser />
-              </Layout>
-            ) : (
-              <Navigate to="/" />
-            )
-          }
-        />
-        <Route
-          path="/transactions"
-          element={
-            isLoggedIn ? (
-              <Layout>
-                <History />
-              </Layout>
-            ) : (
-              <Navigate to="/" />
-            )
-          }
-        />
-        <Route
-          path="/add-users"
-          element={
-            isLoggedIn ? (
-              <Layout>
-                <Adduser />
-              </Layout>
-            ) : (
-              <Navigate to="/" />
-            )
-          }
-        />
+        {renderRoutes()}
       </Routes>
     </Router>
   );
