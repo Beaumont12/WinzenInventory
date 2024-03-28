@@ -38,6 +38,9 @@ const LoginPage = (props) => {
       if (userData && userData.password === password) {
         // Login successful
         console.log('Logged in successfully');
+        localStorage.setItem('loggedInUser', username); // Store username in local storage
+        localStorage.setItem('loggedInUserName', userData.name);
+        localStorage.setItem('loggedInUserEmail', userData.email); // Store user email in local storage
         props.handleLogin(); // Call handleLogin function from props
         navigateTo('/home');// Redirect to home page
       } else {

@@ -28,6 +28,7 @@ const ManageProducts = () => {
   const [newPrice, setNewPrice] = useState(0);
   const [showAddForm, setShowAddForm] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [showConfirmation, setShowConfirmation] = useState(false);
 
   useEffect(() => {
     loadCategories();
@@ -166,6 +167,7 @@ const ManageProducts = () => {
         setEditMode(false);
         setNewSize('');
         setNewPrice('');
+        setShowConfirmation(false); // Hide the confirmation dialog after updating
       })
       .catch((error) => {
         console.error('Error updating product:', error);
@@ -173,9 +175,12 @@ const ManageProducts = () => {
   };  
   
   const handleUpdateProduct = () => {
-    console.log("Selected Size:", newSize);
-    console.log("New Price:", newPrice);
-    
+    setConfirmationMessage("Are you sure you want to update the product?")
+    setConfirmationCallback(() => () => confirmUpdate())
+    setShowConfirmation(true);
+  };
+  
+  const confirmUpdate = () => {
     // Parse the new price as an integer
     const parsedNewPrice = parseInt(newPrice);
   
@@ -195,10 +200,9 @@ const ManageProducts = () => {
       console.log("Invalid price. Please enter a valid number.");
     }
   };
-  
+
   const handleSizeChange = (e) => {
     const newSize = e.target.value;
-    console.log('Selected Size:', newSize);
     setNewSize(newSize); // Update newSize state
   };
 
@@ -207,66 +211,73 @@ const ManageProducts = () => {
     setNewPrice('');
   };
 
+  const [confirmationMessage, setConfirmationMessage] = useState('');
+  const [confirmationCallback, setConfirmationCallback] = useState(null);
+
+  // Function to handle size deletion
   const handleDeleteSize = (size) => {
-    // Display a confirmation dialog
-    const confirmDelete = window.confirm(`Are you sure you want to delete the size '${size}'?`);
-    
-    // Proceed with deletion if confirmed
-    if (confirmDelete) {
-      // Remove the size from the selected product's variations in the local state
-      setSelectedProduct((prevProduct) => {
-        const updatedProduct = { ...prevProduct };
-        if (
-          updatedProduct &&
-          updatedProduct.Variations &&
-          updatedProduct.Variations.temperature &&
-          updatedProduct.Variations.temperature[selectedTemperature]
-        ) {
-          delete updatedProduct.Variations.temperature[selectedTemperature][size];
-        }
-        return updatedProduct;
-      });
-  
-      // Remove the size from the database
-      const db = getDatabase();
-      const productRef = ref(
-        db,
-        `products/${selectedProduct.id}/Variations/temperature/${selectedTemperature}/${size}`
-      );
-  
-      // Remove the size from the database
-      remove(productRef)
-        .then(() => {
-          console.log(`Size '${size}' deleted successfully from the database.`);
-        })
-        .catch((error) => {
-          console.error("Error deleting size from the database:", error);
-        });
-    }
+    setConfirmationMessage(`Are you sure you want to delete the size '${size}'?`);
+    setConfirmationCallback(() => () => confirmDeleteSize(size));
+    setShowConfirmation(true);
   };
 
-  const deleteProduct = (product) => {
-    if (product) {
-      const confirmDelete = window.confirm(`Are you sure you want to delete the product '${product.Name}'?`);
-      
-      if (confirmDelete) {
-        const db = getDatabase();
-        const productRef = ref(db, `products/${product.id}`);
-  
-        // Remove the product from the database
-        remove(productRef)
-          .then(() => {
-            console.log(`Product '${product.Name}' deleted successfully from the database.`);
-            // Remove the product from the local state
-            setProducts((prevProducts) => prevProducts.filter((p) => p.id !== product.id));
-            setSelectedProduct(null); // Clear selected product
-          })
-          .catch((error) => {
-            console.error("Error deleting product from the database:", error);
-          });
+  // Function to confirm size deletion
+  const confirmDeleteSize = (size) => {
+    // Remove the size from the selected product's variations in the local state
+    setSelectedProduct((prevProduct) => {
+      const updatedProduct = { ...prevProduct };
+      if (
+        updatedProduct &&
+        updatedProduct.Variations &&
+        updatedProduct.Variations.temperature &&
+        updatedProduct.Variations.temperature[selectedTemperature]
+      ) {
+        delete updatedProduct.Variations.temperature[selectedTemperature][size];
       }
-    }
-  };  
+      return updatedProduct;
+    });
+
+    // Remove the size from the database
+    const db = getDatabase();
+    const productRef = ref(
+      db,
+      `products/${selectedProduct.id}/Variations/temperature/${selectedTemperature}/${size}`
+    );
+
+    // Remove the size from the database
+    remove(productRef)
+      .then(() => {
+        console.log(`Size '${size}' deleted successfully from the database.`);
+      })
+      .catch((error) => {
+        console.error("Error deleting size from the database:", error);
+      });
+  };
+
+  // Function to handle product deletion
+  const handleDeleteProduct = (product) => {
+    setConfirmationMessage(`Are you sure you want to delete the product '${product.Name}'?`);
+    setConfirmationCallback(() => () => confirmDeleteProduct(product));
+    setShowConfirmation(true);
+  };
+
+  // Function to confirm product deletion
+  const confirmDeleteProduct = (product) => {
+    const db = getDatabase();
+    const productRef = ref(db, `products/${product.id}`);
+
+    // Remove the product from the database
+    remove(productRef)
+      .then(() => {
+        console.log(`Product '${product.Name}' deleted successfully from the database.`);
+        // Remove the product from the local state
+        setProducts((prevProducts) => prevProducts.filter((p) => p.id !== product.id));
+        setSelectedProduct(null); // Clear selected product
+      })
+      .catch((error) => {
+        console.error("Error deleting product from the database:", error);
+      });
+  };
 
   const handleSearchInputChange = (event) => {
     setSearchQuery(event.target.value); // Update search query state
@@ -278,257 +289,232 @@ const ManageProducts = () => {
     return categoryMatch && searchMatch;
   });
   
-      return (
-        <div className="flex-1 bg-white bg-cover bg-center bg-no-repeat h-screen">
-          <style>
-            {`
-              ::-webkit-scrollbar {
-                width: 10px;
-                height: 5px;
-              }
-
-              ::-webkit-scrollbar-track {
-                background: transparent;
-              }
-
-              ::-webkit-scrollbar-thumb {
-                background: linear-gradient(180deg, rgba(165,164,168,1) 0%, rgba(190,190,195,1) 35%, rgba(255,255,255,1) 100%);
-                border-radius: 0px;
-              }
-
-              ::-webkit-scrollbar-thumb:hover {
-                background: #555;
-              }
-            `}
-          </style>
-          <div className="p-4">
-            <h1 className="text-6xl text-center mt-2 font-bold text-black">
-              Manage Products
-            </h1>
-            <h3 className="text-lg md:text-base bg-teal-800 text-gray-200 text-center mt-4 md:mt-8 font-semibold">
-              EDIT PRODUCTS ONLY WHEN NECESSARY
-            </h3>
-            <hr className="my-4 border-gray-500 border-2" />
-              <input
-                type="text"
-                placeholder="Search products by name"
-                value={searchQuery}
-                onChange={handleSearchInputChange}
-                className="appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500 mb-4">
-                </input>
-            <hr className="my-4 border-gray-500 border-2" />
-            <div className="flex mt-2 mb-2 overflow-x-auto p-2" style={{ scrollBehavior: 'smooth', background: 'transparent' }}>
-            <style>
-            {`
-              ::-webkit-scrollbar {
-                width: 10px;
-                height: 5px;
-              }
-
-              ::-webkit-scrollbar-track {
-                background: transparent;
-              }
-
-              ::-webkit-scrollbar-thumb {
-                background: linear-gradient(180deg, rgba(165,164,168,1) 0%, rgba(190,190,195,1) 35%, rgba(255,255,255,1) 100%);
-                border-radius: 0px;
-              }
-
-              ::-webkit-scrollbar-thumb:hover {
-                background: #555;
-              }
-            `}
-          </style>
-              <div key={'All'} className="mr-4 mb-4">
-                <button
-                  onClick={() => handleCategoryFilter('All')}
-                  className={`px-4 py-2 text-white text-lg rounded-lg font-bold ${
-                    selectedCategory === 'All' ? 'bg-yellow-600' : 'bg-gray-500'
-                  }`}
-                >
-                  All
-                </button>
+  return (
+    <div className="flex-1 bg-white bg-cover bg-center bg-no-repeat h-screen">
+      <style>
+        {`
+          /* Custom scrollbar */
+          ::-webkit-scrollbar {
+            width: 10px;
+            height: 5px;
+          }
+          ::-webkit-scrollbar-track {
+            background: transparent;
+          }
+          ::-webkit-scrollbar-thumb {
+            background: linear-gradient(180deg, rgba(165,164,168,1) 0%, rgba(190,190,195,1) 35%, rgba(255,255,255,1) 100%);
+            border-radius: 0px;
+          }
+          ::-webkit-scrollbar-thumb:hover {
+            background: #555;
+          }
+        `}
+      </style>
+      <div className="p-4">
+        <h1 className="text-6xl text-center mt-2 font-bold text-black">
+          Manage Products
+        </h1>
+        <h3 className="text-lg md:text-base bg-teal-800 text-gray-200 text-center mt-4 md:mt-8 font-semibold">
+          EDIT PRODUCTS ONLY WHEN NECESSARY
+        </h3>
+        <hr className="my-4 border-gray-500 border-2" />
+        <input
+          type="text"
+          placeholder="Search products by name"
+          value={searchQuery}
+          onChange={handleSearchInputChange}
+          className="appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500 mb-4"
+        />
+        <hr className="my-4 border-gray-500 border-2" />
+        <div className="flex mt-2 mb-2 overflow-x-auto p-2" style={{ scrollBehavior: 'smooth', background: 'transparent' }}>
+          <div key={'All'} className="mr-4 mb-4">
+            <button
+              onClick={() => handleCategoryFilter('All')}
+              className={`px-4 py-2 text-white text-lg rounded-lg font-bold ${
+                selectedCategory === 'All' ? 'bg-yellow-600' : 'bg-gray-500'
+              }`}
+            >
+              All
+            </button>
+          </div>
+          {categories.map((category, index) => (
+            <div key={index} className="mr-4 mb-4">
+              <button
+                onClick={() => handleCategoryFilter(category.Name)}
+                className={`px-4 py-2 text-white text-lg rounded-lg font-bold ${
+                  selectedCategory === category.Name
+                    ? 'bg-yellow-600'
+                    : 'bg-gray-500'
+                }`}
+              >
+                {category.Name}
+              </button>
+            </div>
+          ))}
+        </div>
+        {filteredProducts.length > 0 ? (
+          <div className="mt-2 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {filteredProducts.map((product, index) => (
+              <div key={index} className="relative">
+                {/* Product card container */}
+                <div className="rounded-lg bg-gray-100 border border-gray-300 p-4 mb-4 shadow-gray-300 shadow-lg order-slip-bg cursor-pointer">
+                  {/* Product details */}
+                  <div onClick={() => showProductDetails(product)}>
+                    <p className="text-sm md:text-base font-bold">{product.Name}</p>
+                    <p className="text-sm md:text-sm">
+                      Price: {product.Variations.temperature[selectedTemperature] ? Object.values(product.Variations.temperature[selectedTemperature])[0] : ''}
+                    </p>
+                    <img
+                      src={product.imageURL}
+                      alt={product.Name}
+                      className="w-full h-auto mt-2 rounded-lg"
+                    />
+                  </div>
+                  {/* Delete button positioned absolute */}
+                  <div className="absolute top-1 right-1">
+                    <button
+                      className="bg-red-500 text-white rounded-full h-8 w-8 flex items-center justify-center"
+                      onClick={(e) => {
+                        e.stopPropagation(); // Prevent the click event from bubbling up to the product container
+                        handleDeleteProduct(product);
+                      }}
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
               </div>
-              {categories.map((category, index) => (
-                <div key={index} className="mr-4 mb-4">
+            ))}
+          </div>
+        ) : (
+          <p>No products available</p>
+        )}
+
+        {selectedProduct && (
+          <div className="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50">
+            <div className="bg-gray-100 p-8 rounded-lg overflow-y-auto" style={{ width: '70%', height: '80%' }}>
+              <div className="flex justify-between m-4">
+                <h2 className="text-3xl font-extrabold mt-10 mx-6 text-white bg-gray-700 p-2 mb-2 rounded-lg">
+                  {selectedProduct.Name}
+                </h2>
+                <div>
+                  {editMode ? (
+                    <button
+                      className="bg-green-500 text-white px-3 py-1 rounded-md mr-2"
+                      onClick={showConfirmation}
+                    >
+                      Update
+                    </button>
+                  ) : (
+                    <button
+                      className="bg-yellow-600 text-white px-3 py-1 rounded-md mr-2"
+                      onClick={handleEditMode}
+                    >
+                      Edit
+                    </button>
+                  )}
                   <button
-                    onClick={() => handleCategoryFilter(category.Name)}
-                    className={`px-4 py-2 text-white text-lg rounded-lg font-bold ${
-                      selectedCategory === category.Name
-                        ? 'bg-yellow-600'
-                        : 'bg-gray-500'
-                    }`}
+                    className="bg-red-500 text-white px-3 py-1 rounded-md"
+                    onClick={hideProductDetails}
                   >
-                    {category.Name}
+                    Close
                   </button>
                 </div>
-              ))}
-            </div>
-            {filteredProducts.length > 0 ? (
-              <div className="mt-2 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {filteredProducts.map((product, index) => (
-                  <div key={index} className="relative">
-                    {/* Product card container */}
-                    <div className="rounded-lg bg-gray-100 border border-gray-300 p-4 mb-4 shadow-gray-300 shadow-lg order-slip-bg cursor-pointer">
-                      {/* Product details */}
-                      <div onClick={() => showProductDetails(product)}>
-                        <p className="text-sm md:text-base font-bold">{product.Name}</p>
-                        <p className="text-sm md:text-sm">
-                          Price: {product.Variations.temperature[selectedTemperature] ? Object.values(product.Variations.temperature[selectedTemperature])[0] : ''}
-                        </p>
-                        <img
-                          src={product.imageURL}
-                          alt={product.Name}
-                          className="w-full h-auto mt-2 rounded-lg"
-                        />
+              </div>
+              <div className="mt-4 flex justify-between m-10">
+                <div className="w-1/3 mr-4">
+                  <img
+                    src={selectedProduct.imageURL}
+                    alt="Product"
+                    className="w-full h-auto rounded-lg"
+                  />
+                </div>
+                <div className="w-2/3 mx-10">
+                  <p className="font-bold">
+                    Category: {selectedProduct.Category}
+                  </p>
+                  <p className="font-semibold mt-2">
+                    Price: {' '}
+                    {selectedProduct && selectedProduct.Variations && selectedProduct.Variations.temperature && selectedProduct.Variations.temperature[selectedTemperature]
+                      ? (
+                        selectedProduct.Variations.temperature[selectedTemperature][selectedSize || Object.keys(selectedProduct.Variations.temperature[selectedTemperature])[0]] || ''
+                      )
+                      : ''}
+                  </p>
+                  <p>{selectedProduct.description}</p>
+                  <div className="mt-10">
+                    <button
+                      className={`bg-black text-white px-3 py-1 rounded-md mr-2 ${
+                        selectedTemperature === 'hot' ? 'opacity-50' : ''
+                      }`}
+                      onClick={() => handleTemperatureChange('hot')}
+                    >
+                      Hot
+                    </button>
+                    <button
+                      className={`bg-black text-white px-3 py-1 rounded-md ${
+                        selectedTemperature === 'iced' ? 'opacity-50' : ''
+                      }`}
+                      onClick={() => handleTemperatureChange('iced')}
+                    >
+                      Iced
+                    </button>
+                  </div>
+                  <div className="mt-10">
+                    <p className="font-bold">Sizes:</p>
+                    {selectedProduct.Variations.temperature[selectedTemperature] && Object.keys(selectedProduct.Variations.temperature[selectedTemperature]).map((size, index) => (
+                      <div
+                        key={index}
+                        className={`flex items-center justify-between cursor-pointer ${
+                          selectedSize === size ? 'text-blue-500' : 'text-gray-500'
+                        }`}
+                        onClick={() => handleSizeClick(size)}
+                      >
+                        <div className="flex items-center">
+                          <div className="w-6 h-6 bg-emerald-700 rounded-full mr-2 mt-2"></div>
+                          <p>{size}</p>
+                        </div>
+                        {editMode && (
+                          <button className="text-white bg-red-600 px-2 rounded-md" onClick={() => handleDeleteSize(size)}>Delete</button>
+                        )}
                       </div>
-                      {/* Delete button positioned absolute */}
-                      <div className="absolute top-1 right-1">
+                    ))}
+                    {editMode && !showAddForm && (
+                      <button className="mt-10 text-white bg-blue-600 px-3 py-2 rounded-md" onClick={handleAddFormToggle}>Add Size</button>
+                    )}
+                    {editMode && showAddForm && (
+                      <div className="flex items-center mt-10 ">
+                        <input
+                          type="text"
+                          placeholder="New Size"
+                          value={newSize}
+                          onChange={(e) => setNewSize(e.target.value)}
+                          className="mt-1 p-2 block w-1/2 border-black border-2 rounded-md focus:ring-indigo-500 focus:border-indigo-500 mr-4"
+                        />
+                        <input
+                          type="number"
+                          placeholder="New Price"
+                          value={newPrice}
+                          onChange={(e) => setNewPrice(e.target.value)}
+                          className="mt-1 p-2 block w-1/2 border-black border-2 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
+                        />
                         <button
-                          className="bg-red-500 text-white rounded-full h-8 w-8 flex items-center justify-center"
-                          onClick={(e) => {
-                            e.stopPropagation(); // Prevent the click event from bubbling up to the product container
-                            deleteProduct(product);
+                          className="text-white ml-2 bg-emerald-600 px-4 rounded-md"
+                          onClick={() => {
+                            if (newSize && newPrice) {
+                              updateProduct({ [newSize]: newPrice });
+                              setNewSize('');
+                              setNewPrice(0);
+                              setShowAddForm(false);
+                            }
                           }}
                         >
-                          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                          </svg>
+                          Add
                         </button>
                       </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p>No products available</p>
-            )}
-
-            {selectedProduct && (
-              <div className="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50">
-                <div className="bg-gray-100 p-8 rounded-lg overflow-y-auto" style={{ width: '70%', height: '80%' }}>
-                  <div className="flex justify-between m-4">
-                    <h2 className="text-3xl font-extrabold mt-10 mx-6 text-white bg-gray-700 p-2 mb-2 rounded-lg">
-                      {selectedProduct.Name}
-                    </h2>
-                    <div>
-                      {editMode ? (
-                        <button
-                          className="bg-green-500 text-white px-3 py-1 rounded-md mr-2"
-                          onClick={handleUpdateProduct}
-                        >
-                          Update
-                        </button>
-                      ) : (
-                        <button
-                          className="bg-yellow-600 text-white px-3 py-1 rounded-md mr-2"
-                          onClick={handleEditMode}
-                        >
-                          Edit
-                        </button>
-                      )}
-                      <button
-                        className="bg-red-500 text-white px-3 py-1 rounded-md"
-                        onClick={hideProductDetails}
-                      >
-                        Close
-                      </button>
-                    </div>
-                  </div>
-                  <div className="mt-4 flex justify-between m-10">
-                    <div className="w-1/3 mr-4">
-                      <img
-                        src={selectedProduct.imageURL}
-                        alt="Product"
-                        className="w-full h-auto rounded-lg"
-                      />
-                    </div>
-                    <div className="w-2/3 mx-10">
-                      <p className="font-bold">
-                        Category: {selectedProduct.Category}
-                      </p>
-                      <p className="font-semibold mt-2">
-                        Price: {' '}
-                        {selectedProduct && selectedProduct.Variations && selectedProduct.Variations.temperature && selectedProduct.Variations.temperature[selectedTemperature]
-                          ? (
-                            selectedProduct.Variations.temperature[selectedTemperature][selectedSize || Object.keys(selectedProduct.Variations.temperature[selectedTemperature])[0]] || ''
-                          )
-                          : ''}
-                      </p>
-                      <p>{selectedProduct.description}</p>
-                      <div className="mt-10">
-                        <button
-                          className={`bg-black text-white px-3 py-1 rounded-md mr-2 ${
-                            selectedTemperature === 'hot' ? 'opacity-50' : ''
-                          }`}
-                          onClick={() => handleTemperatureChange('hot')}
-                        >
-                          Hot
-                        </button>
-                        <button
-                          className={`bg-black text-white px-3 py-1 rounded-md ${
-                            selectedTemperature === 'iced' ? 'opacity-50' : ''
-                          }`}
-                          onClick={() => handleTemperatureChange('iced')}
-                        >
-                          Iced
-                        </button>
-                      </div>
-                      <div className="mt-10">
-                        <p className="font-bold">Sizes:</p>
-                        {selectedProduct.Variations.temperature[selectedTemperature] && Object.keys(selectedProduct.Variations.temperature[selectedTemperature]).map((size, index) => (
-                          <div
-                            key={index}
-                            className={`flex items-center justify-between cursor-pointer ${
-                              selectedSize === size ? 'text-blue-500' : 'text-gray-500'
-                            }`}
-                            onClick={() => handleSizeClick(size)}
-                          >
-                            <div className="flex items-center">
-                              <div className="w-6 h-6 bg-emerald-700 rounded-full mr-2 mt-2"></div>
-                              <p>{size}</p>
-                            </div>
-                            {editMode && (
-                              <button className="text-white bg-red-600 px-2 rounded-md" onClick={() => handleDeleteSize(size)}>Delete</button>
-                            )}
-                          </div>
-                        ))}
-                        {editMode && !showAddForm && (
-                          <button className="mt-10 text-white bg-blue-600 px-3 py-2 rounded-md" onClick={handleAddFormToggle}>Add Size</button>
-                        )}
-                        {editMode && showAddForm && (
-                          <div className="flex items-center mt-10 ">
-                            <input
-                              type="text"
-                              placeholder="New Size"
-                              value={newSize}
-                              onChange={(e) => setNewSize(e.target.value)}
-                              className="mt-1 p-2 block w-1/2 border-black border-2 rounded-md focus:ring-indigo-500 focus:border-indigo-500 mr-4"
-                            />
-                            <input
-                              type="number"
-                              placeholder="New Price"
-                              value={newPrice}
-                              onChange={(e) => setNewPrice(e.target.value)}
-                              className="mt-1 p-2 block w-1/2 border-black border-2 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
-                            />
-                            <button
-                              className="text-white ml-2 bg-emerald-600 px-4 rounded-md"
-                              onClick={() => {
-                                if (newSize && newPrice) {
-                                  updateProduct({ [newSize]: newPrice });
-                                  setNewSize('');
-                                  setNewPrice(0);
-                                  setShowAddForm(false);
-                                }
-                              }}
-                            >
-                              Add
-                            </button>
-                          </div>
-                        )}
-                      </div>
-                    </div>
+                    )}
                   </div>
                   {editMode && (
                     <div className="mt-10 mx-10">
@@ -561,10 +547,41 @@ const ManageProducts = () => {
                   )}
                 </div>
               </div>
-            )}
             </div>
-        </div>
-      );      
+          </div>
+        )}
+        {showConfirmation && (
+        <ConfirmationDialog
+          message={confirmationMessage}
+          onCancel={() => setShowConfirmation(false)}
+          onConfirm={() => {
+            confirmationCallback();
+            setShowConfirmation(false);
+          }}
+        />
+      )}
+      </div>
+    </div>
+  );
 };
 
 export default ManageProducts;
+
+// ConfirmationDialog component
+const ConfirmationDialog = ({ message, onCancel, onConfirm }) => {
+  return (
+    <div className="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50">
+      <div className="bg-white p-8 rounded-lg">
+        <p className="text-lg font-semibold">{message}</p>
+        <div className="mt-4 flex justify-end">
+          <button className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded inline-flex items-center mr-2" onClick={onCancel}>
+            Cancel
+          </button>
+          <button className="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded inline-flex items-center" onClick={onConfirm}>
+            Confirm
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};

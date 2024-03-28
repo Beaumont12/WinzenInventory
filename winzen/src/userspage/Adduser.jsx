@@ -34,6 +34,8 @@ const Adduser = () => {
   const [showConfirmation, setShowConfirmation] = useState(false);
   const form = useRef();
   const [staffCount, setStaffCount] = useState(0);
+  const [showAlert, setShowAlert] = useState(false);
+  const [alertMessage, setAlertMessage] = useState('');
 
   useEffect(() => {
     const db = getDatabase();
@@ -82,6 +84,12 @@ const Adduser = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // Check if any required fields are empty
+    if (!userData.Name.trim() || !userData.Email.trim() || !userData.Age.trim() || !userData.Phone.trim() || !userData.Birthday.Date.trim() || !userData.Birthday.Month.trim() || !userData.Birthday.Year.trim() || !e.target.image.files[0] || !userData.Password.trim()) {
+      showAlertMessage('Please fill in all fields');
+      return;
+    }
 
     try {
       const db = getDatabase();
@@ -165,6 +173,15 @@ const Adduser = () => {
     setShowConfirmation(false);
   };
 
+  const showAlertMessage = (message) => {
+    setAlertMessage(message);
+    setShowAlert(true);
+  };
+
+  const hideAlertMessage = () => {
+    setShowAlert(false);
+  };
+
   return (
     <div className="flex-1 bg-white bg-cover bg-center bg-no-repeat h-screen">
     <style>
@@ -229,6 +246,22 @@ const Adduser = () => {
             </div>
             <button type="submit" className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">Add User</button>
           </form>
+          {showAlert && (
+              <div className="fixed z-10 inset-0 overflow-y-auto">
+                <div className="flex items-center justify-center min-h-screen">
+                  <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true"></div>
+                  <div className="relative bg-white rounded-lg overflow-hidden max-w-md w-full">
+                    <div className="p-6">
+                      <h2 className="text-xl font-semibold mb-4">Alert</h2>
+                      <p className="text-gray-700">{alertMessage}</p>
+                      <div className="mt-4 flex justify-end">
+                        <button onClick={hideAlertMessage} className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">OK</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
           {showConfirmation && (
             <div className="fixed z-10 inset-0 overflow-y-auto">
               <div className="flex items-center justify-center min-h-screen">

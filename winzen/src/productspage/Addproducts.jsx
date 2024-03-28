@@ -30,6 +30,8 @@ const AddProducts = () => {
   const [category, setCategory] = useState('');
   const [productName, setProductName] = useState('');
   const [variations, setVariations] = useState([]);
+  const [alertMessage, setAlertMessage] = useState('');
+  const [showAlert, setShowAlert] = useState(false);
 
   const onCropComplete = useCallback((croppedArea, croppedAreaPixels) => {
     setCroppedAreaPixels(croppedAreaPixels);
@@ -47,21 +49,21 @@ const AddProducts = () => {
     try {
       // Check if productId is empty
       if (!productId.trim() || !category.trim() || !productName.trim() || variations.length === 0) {
-        alert("Please fill in all fields and add at least one variation.");
+        showAlertMessage('Please fill in all fields and add at least one variation.');
         return;
       }
-  
+
       // Check if the product ID already exists in the database
       const productIdRef = ref(db, `products/${productId}`);
       const snapshot = await get(productIdRef);
       if (snapshot.exists()) {
-        alert("Product ID already exists. Please enter a unique product ID.");
+        showAlertMessage('Product ID already exists. Please enter a unique product ID.');
         return;
       }
-  
+
       // Check if an image is selected
       if (!src) {
-        alert("Please select an image.");
+        showAlertMessage('Please select an image.');
         return;
       }
   
@@ -104,9 +106,10 @@ const AddProducts = () => {
       setVariations([]);
       
       // Confirmation message
-      alert('Product added successfully!');
+      showConfirmationMessage('Product added successfully!');
     } catch (error) {
       console.error('Error cropping image or adding product:', error);
+      showAlertMessage('Error cropping image or adding product.');
     }
   }, [croppedAreaPixels, productId, src, variations, category, productName]);  
 
@@ -144,7 +147,7 @@ const AddProducts = () => {
     if (variations.length < 2) {
       setVariations([...variations, { temperature: '', sizes: [{ size: '', price: '' }] }]);
     } else {
-      alert("Maximum 2 variations allowed");
+      showConfirmationMessage("Maximum 2 variations allowed");
     }
   };  
 
@@ -176,6 +179,22 @@ const AddProducts = () => {
     setVariations(newVariations);
   };
 
+  const showAlertMessage = (message) => {
+    setAlertMessage(message);
+    setShowAlert(true);
+  };
+
+  // Function to hide alert message
+  const hideAlertMessage = () => {
+    setShowAlert(false);
+  };
+
+  // Function to show confirmation message
+  const showConfirmationMessage = (message) => {
+    setAlertMessage(message);
+    setShowAlert(true);
+  };
+
   return (
     <div className="flex-1 bg-white bg-cover bg-center bg-no-repeat h-screen">
       <style>
@@ -199,6 +218,14 @@ const AddProducts = () => {
           }
         `}
       </style>
+      {showAlert && (
+        <div className="fixed top-0 right-0 w-full h-full bg-gray-600 bg-opacity-50 flex justify-center items-center">
+          <div className="bg-white p-4 rounded-md">
+            <p className="text-xl font-semibold mb-4">{alertMessage}</p>
+            <button className="text-white bg-emerald-400 py-1 px-4 rounded-md" onClick={hideAlertMessage}>OK</button>
+          </div>
+        </div>
+      )}
       <div className="p-4">
         <h1 className="text-6xl font-bold text-center text-black mb-4 mt-2">Add Products</h1>
         <h3 className="text-lg md:text-base bg-teal-800 text-center text-gray-200 mt-4 md:mt-8 font-semibold">MAKE SURE PRODUCT ID IS UNIQUE</h3>

@@ -49,6 +49,7 @@ function App() {
           <Route path="/manage-users" element={<Layout handleLogout={handleLogout}><Manageuser /></Layout>} />
           <Route path="/transactions" element={<Layout handleLogout={handleLogout}><History /></Layout>} />
           <Route path="/add-users" element={<Layout handleLogout={handleLogout}><Adduser /></Layout>} />
+          <Route path="/" element={<Navigate to="/home" />} /> {/* Redirect to /home if already logged in */}
         </>
       );
     } else {

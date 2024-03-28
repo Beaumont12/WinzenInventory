@@ -20,6 +20,8 @@ const AddCategory = () => {
   const [categoryName, setCategoryName] = useState('');
   const [categoryId, setCategoryId] = useState('');
   const [categories, setCategories] = useState({});
+  const [alertMessage, setAlertMessage] = useState('');
+  const [showAlert, setShowAlert] = useState(false);
 
   useEffect(() => {
     loadCategories();
@@ -41,13 +43,13 @@ const AddCategory = () => {
 
   const handleAddCategory = () => {
     if (!categoryName || !categoryId) {
-      alert('Please enter both category name and ID');
+      showAlertMessage('Please enter both category name and ID');
       return;
     }
 
     // Check if the category ID already exists
     if (categories && categories[categoryId]) {
-      alert('Category ID already exists. Please choose a unique ID.');
+      showAlertMessage('Category ID already exists. Please choose a unique ID.');
       return;
     }
 
@@ -60,16 +62,30 @@ const AddCategory = () => {
   
     set(categoriesRef, newCategoryData) // Pass the reference and data directly to set
       .then(() => {
-        alert('Category added successfully');
+        showConfirmationMessage('Category added successfully');
         setCategoryName('');
         setCategoryId('');
         loadCategories(); // Reload categories after adding a new one
       })
       .catch((error) => {
         console.error('Error adding category:', error);
-        alert('Failed to add category');
+        showAlertMessage('Failed to add category');
       });
-  };  
+  };
+
+  const showAlertMessage = (message) => {
+    setAlertMessage(message);
+    setShowAlert(true);
+  };
+
+  const hideAlertMessage = () => {
+    setShowAlert(false);
+  };
+
+  const showConfirmationMessage = (message) => {
+    setAlertMessage(message);
+    setShowAlert(true);
+  };
 
   return (
     <div className="flex-1 bg-white bg-opacity-20 bg-cover bg-center bg-no-repeat h-screen">
@@ -104,6 +120,14 @@ const AddCategory = () => {
           </div>
         </div>
       </div>
+      {showAlert && (
+        <div className="fixed top-0 right-0 w-full h-full bg-gray-600 bg-opacity-50 flex justify-center items-center">
+          <div className="bg-white p-4 rounded-md">
+            <p className="text-xl font-semibold mb-4">{alertMessage}</p>
+            <button className="text-white bg-emerald-400 py-1 px-4 rounded-md" onClick={hideAlertMessage}>OK</button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

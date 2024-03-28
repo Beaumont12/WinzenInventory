@@ -24,6 +24,17 @@
     object-fit: contain;
   }
   
+  .scrollable-section {
+    max-height: 200px; /* Adjust the height as needed */
+    overflow-y: auto;
+  }
+  
+  .scrollable-list {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+  }
+  
 /* Add these styles to your CSS file */
 .modal {
   display: none; /* Hide the modal by default */

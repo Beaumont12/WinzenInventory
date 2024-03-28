@@ -20,8 +20,11 @@ const app = initializeApp(firebaseConfig);
 const Managecategory = () => {
   const [categories, setCategories] = useState([]);
   const [editModalOpen, setEditModalOpen] = useState(false);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [editedCategory, setEditedCategory] = useState({ id: '', name: '', newId: '' });
+  const [deletedCategoryId, setDeletedCategoryId] = useState(null);
   const [confirmChanges, setConfirmChanges] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -71,20 +74,24 @@ const Managecategory = () => {
   };
 
   const deleteCategory = async (categoryId) => {
-    const confirmDelete = window.confirm("Are you sure you want to delete this category?");
-    if (!confirmDelete) return;
-  
+    setDeletedCategoryId(categoryId);
+    setDeleteModalOpen(true);
+  };  
+
+  const confirmDeleteCategory = async () => {
     const db = getDatabase();
-    const categoryRef = ref(db, `categories/${categoryId}`);
-  
+    const categoryRef = ref(db, `categories/${deletedCategoryId}`);
+
     try {
       await remove(categoryRef);
-      setCategories(prevCategories => prevCategories.filter(category => category.id !== categoryId));
+      setCategories(prevCategories => prevCategories.filter(category => category.id !== deletedCategoryId));
       console.log("Category deleted successfully");
+      setConfirmDelete(true);
     } catch (error) {
       console.error("Error deleting category:", error);
     }
-  };  
+    setDeleteModalOpen(false);
+  };
 
   const openEditModal = (category) => {
     setEditedCategory({
@@ -109,9 +116,13 @@ const Managecategory = () => {
   };
 
   const confirmChangesAndSave = async () => {
-    const confirmSave = window.confirm("Are you sure you want to save the changes?");
-    if (!confirmSave) return;
+    setEditModalOpen(false); // Close the edit modal
     
+    // Show confirmation modal for saving changes
+    setConfirmChanges(true);
+  };    
+
+  const saveChanges = async () => {
     const db = getDatabase();
     const categoryRef = ref(db, `categories/${editedCategory.id}`);
     
@@ -129,37 +140,36 @@ const Managecategory = () => {
         )
       );
     
-      setConfirmChanges(true);
+      setConfirmChanges(false); // Close the confirmation modal
       console.log("Changes saved successfully");
-      closeEditModal();
     } catch (error) {
       console.error("Error saving changes:", error);
     }
-  };    
+  }; 
 
   return (
     <div className="flex-1 bg-white bg-cover bg-center bg-no-repeat h-screen">
       <style>
-            {`
-              ::-webkit-scrollbar {
-                width: 10px;
-                height: 5px;
-              }
+        {`
+          ::-webkit-scrollbar {
+            width: 10px;
+            height: 5px;
+          }
 
-              ::-webkit-scrollbar-track {
-                background: transparent;
-              }
+          ::-webkit-scrollbar-track {
+            background: transparent;
+          }
 
-              ::-webkit-scrollbar-thumb {
-                background: linear-gradient(180deg, rgba(165,164,168,1) 0%, rgba(190,190,195,1) 35%, rgba(255,255,255,1) 100%);
-                border-radius: 0px;
-              }
+          ::-webkit-scrollbar-thumb {
+            background: linear-gradient(180deg, rgba(165,164,168,1) 0%, rgba(190,190,195,1) 35%, rgba(255,255,255,1) 100%);
+            border-radius: 0px;
+          }
 
-              ::-webkit-scrollbar-thumb:hover {
-                background: #555;
-              }
-            `}
-          </style>
+          ::-webkit-scrollbar-thumb:hover {
+            background: #555;
+          }
+        `}
+      </style>
       <div className="p-4">
         <h1 className="text-6xl text-center text-black font-bold mt-2">Manage Category</h1>
         <h3 className="text-lg md:text-base text-center text-gray-200 mt-4 md:mt-8 font-semibold bg-teal-800">EDIT ONLY WHEN NECESSARY</h3>
@@ -196,7 +206,31 @@ const Managecategory = () => {
                 <button className="text-white bg-green-500 py-1 px-4 rounded-md mr-2" onClick={confirmChangesAndSave}>Save Changes</button>
                 <button className="text-white bg-gray-500 py-1 px-4 rounded-md" onClick={closeEditModal}>Cancel</button>
               </div>
-              {confirmChanges && <p className="text-green-600 mt-2">Changes saved successfully!</p>}
+            </div>
+          </div>
+        )}
+        {confirmChanges && (
+          <div className="fixed top-0 left-0 w-full h-full bg-gray-600 bg-opacity-50 flex justify-center items-center">
+            <div className="bg-white p-4 rounded-md">
+              <h2 className="text-xl font-semibold mb-4">Confirm Save Changes</h2>
+              <p className="text-gray-700">Are you sure you want to save the changes?</p>
+              <div className="flex justify-end mt-4">
+                <button className="text-white bg-green-500 py-1 px-4 rounded-md mr-2" onClick={saveChanges}>Confirm</button>
+                <button className="text-white bg-gray-500 py-1 px-4 rounded-md" onClick={() => setConfirmChanges(false)}>Cancel</button>
+              </div>
+            </div>
+          </div>
+        )}
+        {deleteModalOpen && (
+          <div className="fixed top-0 left-0 w-full h-full bg-gray-600 bg-opacity-50 flex justify-center items-center">
+            <div className="bg-white p-4 rounded-md">
+              <h2 className="text-xl font-semibold mb-4">Confirm Delete Category</h2>
+              <p className="text-gray-700">Are you sure you want to delete this category?</p>
+              <div className="flex justify-end mt-4">
+                <button className="text-white bg-red-500 py-1 px-4 rounded-md mr-2" onClick={confirmDeleteCategory}>Confirm</button>
+                <button className="text-white bg-gray-500 py-1 px-4 rounded-md" onClick={() => setDeleteModalOpen(false)}>Cancel</button>
+              </div>
+              {confirmDelete && <p className="text-green-600 mt-2">Category deleted successfully!</p>}
             </div>
           </div>
         )}
