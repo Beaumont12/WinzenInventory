@@ -30,10 +30,13 @@ const Manageuser = () => {
       Date: '',
       Month: '',
       Year: ''
-    }
+    },
+    Password: '', // New field for password
+    Role: '' // New field for role
   });
   const [searchQuery, setSearchQuery] = useState('');
   const [filteredUsers, setFilteredUsers] = useState([]);
+  const roleOptions = ['Admin', 'Barista', 'Cashier'];
 
   useEffect(() => {
     const fetchData = async () => {
@@ -52,7 +55,7 @@ const Manageuser = () => {
           }
         });
       } catch (error) {
-        console.error('Error fetching users:', error);
+        console.error('Error fetching staffs:', error);
         setLoading(false);
       }
     };
@@ -90,7 +93,9 @@ const Manageuser = () => {
         Date: '',
         Month: '',
         Year: ''
-      }
+      },
+      Password: '', // Reset password field
+      Role: '' // Reset role field
     });
     setModalOpen(false);
   };
@@ -124,12 +129,12 @@ const Manageuser = () => {
         setDeleteUserId(null);
       })
       .catch((error) => {
-        console.error('Error deleting user:', error);
+        console.error('Error deleting staff:', error);
       });
   };
 
   const handleSaveChanges = () => {
-    console.log('Updated user data:', updatedUserData);
+    console.log('Updated staff data:', updatedUserData);
     const db = getDatabase();
     const userRef = ref(db, `staffs/${editingUser.id}`);
     update(userRef, {
@@ -137,6 +142,8 @@ const Manageuser = () => {
       Email: updatedUserData.Email,
       Age: updatedUserData.Age,
       Phone: updatedUserData.Phone,
+      Password: updatedUserData.Password, // Add password field
+      Role: updatedUserData.Role, // Add role field
       Birthday: {
         Date: updatedUserData.Birthday.Date,
         Month: updatedUserData.Birthday.Month,
@@ -151,48 +158,48 @@ const Manageuser = () => {
       }));
       handleCloseModal();
     }).catch((error) => {
-      console.error('Error updating user:', error);
+      console.error('Error updating staff:', error);
     });
   };
 
   return (
     <div>
       <div className="flex-1 bg-white bg-cover bg-center bg-no-repeat h-screen">
-      <style>
-            {`
-              ::-webkit-scrollbar {
-                width: 10px;
-                height: 5px;
-              }
+        <style>
+          {`
+            ::-webkit-scrollbar {
+              width: 10px;
+              height: 5px;
+            }
 
-              ::-webkit-scrollbar-track {
-                background: transparent;
-              }
+            ::-webkit-scrollbar-track {
+              background: transparent;
+            }
 
-              ::-webkit-scrollbar-thumb {
-                background: linear-gradient(180deg, rgba(165,164,168,1) 0%, rgba(190,190,195,1) 35%, rgba(255,255,255,1) 100%);
-                border-radius: 0px;
-              }
+            ::-webkit-scrollbar-thumb {
+              background: linear-gradient(180deg, rgba(165,164,168,1) 0%, rgba(190,190,195,1) 35%, rgba(255,255,255,1) 100%);
+              border-radius: 0px;
+            }
 
-              ::-webkit-scrollbar-thumb:hover {
-                background: #555;
-              }
-            `}
-          </style>
+            ::-webkit-scrollbar-thumb:hover {
+              background: #555;
+            }
+          `}
+        </style>
         <div className="p-4">
-          <h1 className="text-6xl text-center mt-2 font-bold">Manage Users</h1>
+          <h1 className="text-6xl text-center mt-2 font-bold">Manage Staffs</h1>
           <h3 className="text-lg md:text-base text-center text-gray-200 mt-4 md:mt-8 font-semibold bg-teal-800">EDIT ONLY WHEN NECESSARY</h3>
           {/* Search bar */}
           <hr className="my-4 border-gray-500 border-2" />
-              <input
-                type="text"
-                placeholder="Search Staffs by Name"
-                value={searchQuery}
-                onChange={(e)=> setSearchQuery(e.target.value)}
-                className="appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500 mb-4">
-                </input>
-            <hr className="my-4 border-gray-500 border-2" />
-            <div className="grid grid-cols-1 p-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8 mt-4 border border-gray-300 rounded-lg shadow-lg">
+          <input
+            type="text"
+            placeholder="Search Staffs by Name"
+            value={searchQuery}
+            onChange={(e)=> setSearchQuery(e.target.value)}
+            className="appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500 mb-4">
+          </input>
+          <hr className="my-4 border-gray-500 border-2" />
+          <div className="grid grid-cols-1 p-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8 mt-4 border border-gray-300 rounded-lg shadow-lg">
             {loading ? (
               <p>Loading...</p>
             ) : (
@@ -200,18 +207,19 @@ const Manageuser = () => {
                 <div key={user.id} className="bg-gray-100 rounded-lg shadow-md overflow-hidden">
                   <div className="p-2">
                     <div className="flex items-center mb-2">
-                    <div className="w-[56px] h-[56px] mr-2 rounded-full overflow-hidden">
-                      <div className="w-full h-full bg-center bg-cover" style={{ backgroundImage: `url(${user.ImageUrl})` }} />
-                    </div>
+                      <div className="w-[56px] h-[56px] mr-2 rounded-full overflow-hidden">
+                        <div className="w-full h-full bg-center bg-cover" style={{ backgroundImage: `url(${user.ImageUrl})` }} />
+                      </div>
                       <div>
                         <h2 className="text-lg font-semibold">{user.Name}</h2>
                         <p className="text-sm text-gray-800 opacity-60">{user.Email}</p>
                       </div>
                     </div>
-                    <p className="text-sm text-gray-800 opacity-80">ID: {user.id}</p>
-                    <p className="text-sm text-gray-800 opacity-80">Age: {user.Age}</p>
-                    <p className="text-sm text-gray-800 opacity-80">Phone: {user.Phone}</p>
-                    <p className="text-sm text-gray-800 opacity-80">Birthday: {user.Birthday.Month}/{user.Birthday.Date}/{user.Birthday.Year}</p>
+                    <p className="text-xs text-gray-800 opacity-80 ps-1 mt-4"><strong>ID:</strong> {user.id}</p>
+                    <p className="text-xs text-gray-800 opacity-80 ps-1"><strong>Role:</strong> {user.Role}</p>
+                    <p className="text-xs text-gray-800 opacity-80 ps-1"><strong>Age:</strong> {user.Age}</p>
+                    <p className="text-xs text-gray-800 opacity-80 ps-1"><strong>Phone:</strong> {user.Phone}</p>
+                    <p className="text-xs text-gray-800 opacity-80 ps-1"><strong>Birthday:</strong> {user.Birthday.Month}/{user.Birthday.Date}/{user.Birthday.Year}</p>
                     <div className="mt-4 flex justify-end">
                       <button onClick={() => handleEditClick(user)} className="mr-2 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
                         <PencilIcon className="h-5 w-5 text-white" /> {/* Edit Icon */}
@@ -235,7 +243,7 @@ const Manageuser = () => {
             <div className="relative bg-white rounded-lg overflow-hidden max-w-md w-full">
               <div className="p-6">
                 <h2 className="text-xl font-semibold mb-4">Confirm Delete</h2>
-                <p className="text-gray-700">Are you sure you want to delete this user?</p>
+                <p className="text-gray-700">Are you sure you want to delete this Staff?</p>
                 <div className="mt-4 flex justify-end">
                   <button onClick={() => setDeleteUserId(null)} className="mr-2 bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded">
                     Cancel
@@ -256,7 +264,7 @@ const Manageuser = () => {
             <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true"></div>
             <div className="relative bg-white rounded-lg overflow-hidden max-w-md w-full">
               <div className="p-6">
-                <h2 className="text-xl font-semibold mb-4">Edit User</h2>
+                <h2 className="text-xl font-semibold mb-4">Edit Staff</h2>
                 <div className="mb-4">
                   <label className="block text-gray-700 text-sm font-bold mb-2">Name</label>
                   <input type="text" name="Name" value={updatedUserData.Name} onChange={handleInputChange} className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" />
@@ -280,6 +288,19 @@ const Manageuser = () => {
                     <input type="number" name="Birthday.Date" placeholder="Date" value={updatedUserData.Birthday.Date} onChange={handleInputChange} className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" />
                     <input type="number" name="Birthday.Year" placeholder="Year" value={updatedUserData.Birthday.Year} onChange={handleInputChange} className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" />
                   </div>
+                </div>
+                <div className="mb-4">
+                  <label className="block text-gray-700 text-sm font-bold mb-2">Password</label>
+                  <input type="password" name="Password" value={updatedUserData.Password} onChange={handleInputChange} className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" />
+                </div>
+                <div className="mb-4">
+                  <label className="block text-gray-700 text-sm font-bold mb-2">Role</label>
+                  <select name="Role" value={updatedUserData.Role} onChange={handleInputChange} className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                    <option value="">Select Role</option>
+                    {roleOptions.map(option => (
+                      <option key={option} value={option}>{option}</option>
+                    ))}
+                  </select>
                 </div>
                 <div className="mt-4 flex justify-end">
                   <button onClick={handleCloseModal} className="mr-2 bg-red-700 hover:bg-gray-300 text-white font-bold py-2 px-4 rounded">

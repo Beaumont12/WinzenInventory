@@ -31,8 +31,13 @@ function App() {
     // Perform logout logic
     localStorage.removeItem('isLoggedIn');
     setIsLoggedIn(false);
-    return <Navigate to="/" />;
   };
+
+  useEffect(() => {
+    // Check if user is logged in on initial mount
+    const loggedIn = localStorage.getItem('isLoggedIn') === 'true';
+    setIsLoggedIn(loggedIn);
+  }, []);
 
   // Function to render routes based on login status
   const renderRoutes = () => {

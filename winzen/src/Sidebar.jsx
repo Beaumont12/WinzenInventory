@@ -112,20 +112,20 @@ const Sidebar = ({ handleLogout }) => {
           </li>
         </NavLink>
         <h3 className="text-white text-sm ml-2 mt-3 mb-1 font-semibold opacity-65">Users</h3>
-        <NavLink to="/manage-users" onClick={() => handleItemClick("Manage Users")}>
+        <NavLink to="/manage-users" onClick={() => handleItemClick("Manage Staffs")}>
           <li 
-            className={`px-4 py-2 text-white hover:bg-yellow-600 cursor-pointer font-semibold flex items-center transition duration-300 ease-in-out transform hover:scale-105 ${activeItem === "Manage Users" ? 'bg-yellow-600' : ''}`}
+            className={`px-4 py-2 text-white hover:bg-yellow-600 cursor-pointer font-semibold flex items-center transition duration-300 ease-in-out transform hover:scale-105 ${activeItem === "Manage Staffs" ? 'bg-yellow-600' : ''}`}
           >
             <FaUserCog className="mr-3 icon" />
-            <span className="align-middle">Manage Users</span>
+            <span className="align-middle">Manage Staffs</span>
           </li>
         </NavLink>
-        <NavLink to="/add-users" onClick={() => handleItemClick("Add Users")}>
+        <NavLink to="/add-users" onClick={() => handleItemClick("Add Staffs")}>
           <li 
-            className={`px-4 py-2 text-white hover:bg-yellow-600 cursor-pointer font-semibold flex items-center transition duration-300 ease-in-out transform hover:scale-105 ${activeItem === "Add Users" ? 'bg-yellow-600' : ''}`}
+            className={`px-4 py-2 text-white hover:bg-yellow-600 cursor-pointer font-semibold flex items-center transition duration-300 ease-in-out transform hover:scale-105 ${activeItem === "Add Staffs" ? 'bg-yellow-600' : ''}`}
           >
             <FaUserPlus className="mr-3 icon" />
-            <span className="align-middle">Add Users</span>
+            <span className="align-middle">Add Staffs</span>
           </li>
         </NavLink>
       </ul>

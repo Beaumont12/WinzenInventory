@@ -20,37 +20,42 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 
 const LoginPage = (props) => {
-  const [username, setUsername] = useState('');
+  const [staffId, setStaffId] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState(null);
   const navigateTo = useNavigate();
 
   const handleLogin = async (e) => {
     e.preventDefault();
-
+  
     try {
       const database = getDatabase(); // Get a reference to the Firebase Realtime Database
-      const userRef = ref(database, `admin/${username}`); // Reference to the user in the database
-
-      const snapshot = await get(userRef); // Get the user data from the database
-      const userData = snapshot.val();
-
-      if (userData && userData.password === password) {
-        // Login successful
-        console.log('Logged in successfully');
-        localStorage.setItem('loggedInUser', username); // Store username in local storage
-        localStorage.setItem('loggedInUserName', userData.name);
-        localStorage.setItem('loggedInUserEmail', userData.email); // Store user email in local storage
-        props.handleLogin(); // Call handleLogin function from props
-        navigateTo('/home');// Redirect to home page
+      const staffRef = ref(database, `staffs/${staffId}`); // Reference to the staff in the database
+  
+      const snapshot = await get(staffRef); // Get the staff data from the database
+      const staffData = snapshot.val();
+  
+      if (staffData && staffData.Password === password) {
+        if (staffData.Role === 'Admin') {
+          // Login successful for admin staff
+          console.log('Logged in successfully');
+          localStorage.setItem('loggedInStaffId', staffId); // Store staff ID in local storage
+          localStorage.setItem('loggedInStaffName', staffData.Name);
+          localStorage.setItem('loggedInStaffRole', staffData.Role);
+          localStorage.setItem('loggedInStaffEmail', staffData.Email); // Store staff email in local storage
+          props.handleLogin(); // Call handleLogin function from props
+          navigateTo('/home'); // Redirect to home page
+        } else {
+          setError('Only admin staff can log in this portal');
+        }
       } else {
-        setError('Invalid username or password');
+        setError('Invalid staff ID or password');
       }
     } catch (error) {
       setError('Error logging in: ' + error.message);
       console.error(error);
     }
-  };
+  };  
 
   return (
     <div className="min-h-screen flex justify-center items-center bg-cover" style={{ backgroundImage: `url(${BGgreen})` }}>
@@ -70,17 +75,17 @@ const LoginPage = (props) => {
           {error && <p className="text-red-500 text-center mb-4">{error}</p>}
           <form onSubmit={handleLogin}>
             <div className="mb-4">
-              <label htmlFor="username" className="sr-only">Username:</label>
+              <label htmlFor="staffId" className="sr-only">Staff ID:</label>
               <input
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                id="username"
-                name="username"
+                value={staffId}
+                onChange={(e) => setStaffId(e.target.value)}
+                id="staffId"
+                name="staffId"
                 type="text"
                 autoComplete="text"
                 required
                 className="w-full px-10 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-                placeholder="Admin ID"
+                placeholder="Admin Staff ID"
               />
             </div>
             <div className="mb-4">

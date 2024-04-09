@@ -20,6 +20,7 @@ const History = () => {
   const [historyData, setHistoryData] = useState([]);
   const [selectedHistory, setSelectedHistory] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedMonth, setSelectedMonth] = useState('');
 
   useEffect(() => {
     // Fetch history data from the database
@@ -78,8 +79,33 @@ const History = () => {
     setSearchQuery(e.target.value);
   };
 
-  // Filter historyData based on searchQuery
-  const filteredHistoryData = historyData.filter(history => history.orderNumber.includes(searchQuery));
+  // Function to handle month selection change
+  const handleMonthChange = (e) => {
+    setSelectedMonth(e.target.value);
+  };
+
+  // Filter historyData based on searchQuery and selectedMonth
+  const filteredHistoryData = historyData.filter(history => 
+    history.orderNumber.includes(searchQuery) &&
+    (selectedMonth === '' || new Date(history.orderDateTime).toLocaleString('default', { month: 'short' }) === selectedMonth)
+  );
+
+  // Array of months for the dropdown menu
+  const months = [
+    { value: '', label: 'All Months' },
+    { value: 'Jan', label: 'January' },
+    { value: 'Feb', label: 'February' },
+    { value: 'Mar', label: 'March' },
+    { value: 'Apr', label: 'April' },
+    { value: 'May', label: 'May' },
+    { value: 'Jun', label: 'June' },
+    { value: 'Jul', label: 'July' },
+    { value: 'Aug', label: 'August' },
+    { value: 'Sep', label: 'September' },
+    { value: 'Oct', label: 'October' },
+    { value: 'Nov', label: 'November' },
+    { value: 'Dec', label: 'December' },
+  ];
 
   return (
     <div>
@@ -153,13 +179,26 @@ const History = () => {
         <h3 className="text-lg md:text-base text-center mt-4 md:mt-8 font-semibold bg-teal-800 text-gray-200">PLEASE MAKE SURE TO DOUBLE CHECK</h3>
         <div className="mt-4">
           <hr className="my-4 border-gray-500 border-2" />
-          <input
-            type="text"
-            placeholder="Search products by order number"
-            value={searchQuery}
-            onChange={handleSearchInputChange}
-            className="appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500 mb-4"
-          />
+          <div className="flex justify-between">
+            {/* Search input */}
+            <input
+              type="text"
+              placeholder="Search products by order number"
+              value={searchQuery}
+              onChange={handleSearchInputChange}
+              className="appearance-none block w-full mr-3 bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500 mb-4"
+            />
+            {/* Month filter dropdown */}
+            <select
+              value={selectedMonth}
+              onChange={handleMonthChange}
+              className="appearance-none bg-gray-400 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500 mb-4"
+            >
+              {months.map((month) => (
+                <option key={month.value} value={month.value}>{month.label}</option>
+              ))}
+            </select>
+          </div>
           <hr className="my-4 border-gray-500 border-2" />
           <div className="flex justify-between items-center p-4 my-4 bg-yellow-500 rounded-lg shadow-md font-extrabold">
             <span className="text-lg w-1/4 text-center">Order #</span>
