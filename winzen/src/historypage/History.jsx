@@ -35,7 +35,8 @@ const History = () => {
           const historyArray = Object.keys(data).map((key) => ({
             id: key,
             ...data[key],
-            totalQuantity: Object.values(data[key].orderItems).reduce((acc, item) => acc + item.quantity, 0)
+            totalQuantity: Object.values(data[key].orderItems).reduce((acc, item) => acc + item.quantity, 0),
+            orderDate: new Date(data[key].orderDateTime).toDateString() // Format date
           }));
           setHistoryData(historyArray);
         } else {
@@ -86,9 +87,13 @@ const History = () => {
 
   // Filter historyData based on searchQuery and selectedMonth
   const filteredHistoryData = historyData.filter(history => 
-    history.orderNumber.includes(searchQuery) &&
+    (history.orderNumber.includes(searchQuery) || history.staffName.toLowerCase().includes(searchQuery.toLowerCase())) &&
     (selectedMonth === '' || new Date(history.orderDateTime).toLocaleString('default', { month: 'short' }) === selectedMonth)
   );
+
+  // Calculate total quantity and total amount for all transactions
+  const totalQuantity = historyData.reduce((total, history) => total + history.totalQuantity, 0);
+  const totalAmount = historyData.reduce((total, history) => total + parseFloat(history.total), 0);
 
   // Array of months for the dropdown menu
   const months = [
@@ -183,7 +188,7 @@ const History = () => {
             {/* Search input */}
             <input
               type="text"
-              placeholder="Search products by order number"
+              placeholder="Search products by order number or staff name"
               value={searchQuery}
               onChange={handleSearchInputChange}
               className="appearance-none block w-full mr-3 bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500 mb-4"
@@ -199,21 +204,31 @@ const History = () => {
               ))}
             </select>
           </div>
+          {/* Display total quantity and total amount in a card */}
+          <div className="p-4">
+            <div className="bg-green-200 rounded-lg p-4 mb-1">
+              <h2 className="text-xl font-semibold mb-2">Total Transactions</h2>
+              <p>Total Quantity: {totalQuantity}</p>
+              <p>Total Amount: &#8369;{totalAmount.toFixed(2)}</p>
+            </div>
+          </div>
           <hr className="my-4 border-gray-500 border-2" />
           <div className="flex justify-between items-center p-4 my-4 bg-yellow-500 rounded-lg shadow-md font-extrabold">
-            <span className="text-lg w-1/4 text-center">Order #</span>
-            <span className="text-lg w-1/4 text-center">Staff Name</span>
-            <span className="text-lg w-1/4 text-center">Quantity</span>
-            <span className="text-lg w-1/4 text-center">Total</span>
+            <span className="text-lg w-1/5 text-center">Order #</span>
+            <span className="text-lg w-1/5 text-center">Staff Name</span>
+            <span className="text-lg w-1/5 text-center">Date</span>
+            <span className="text-lg w-1/5 text-center">Quantity</span>
+            <span className="text-lg w-1/5 text-center">Total</span>
           </div>
           <ul>
             {filteredHistoryData.map((history) => (
               <li key={history.id} className="cursor-pointer" onClick={() => handleHistoryClick(history.id)}>
                 <div className="flex justify-between items-center p-4 my-2 bg-white rounded-lg shadow-md">
-                  <span className="text-lg font-semibold w-1/4 text-center text-gray-600">{history.orderNumber}</span>
-                  <span className="text-lg w-1/4 text-center font-semibold text-gray-600">{history.staffName}</span>
-                  <span className="text-lg w-1/4 text-center font-semibold text-gray-600">{history.totalQuantity}</span>
-                  <span className="text-lg w-1/4 text-center font-semibold text-gray-600">&#8369;{history.total}</span>
+                  <span className="text-lg font-semibold w-1/5 text-center text-gray-600">{history.orderNumber}</span>
+                  <span className="text-lg w-1/5 text-center font-semibold text-gray-600">{history.staffName}</span>
+                  <span className="text-lg w-1/5 text-center font-semibold text-gray-600">{history.orderDate}</span>
+                  <span className="text-lg w-1/5 text-center font-semibold text-gray-600">{history.totalQuantity}</span>
+                  <span className="text-lg w-1/5 text-center font-semibold text-gray-600">&#8369;{history.total}</span>
                 </div>
               </li>
             ))}
