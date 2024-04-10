@@ -16,7 +16,26 @@ const firebaseConfig = {
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 
-const ManageProducts = () => {
+// ConfirmationDialog component
+const ConfirmationDialog = ({ message, onCancel, onConfirm }) => {
+  return (
+    <div className="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50">
+      <div className="bg-white p-8 rounded-lg">
+        <p className="text-lg font-semibold">{message}</p>
+        <div className="mt-4 flex justify-end">
+          <button className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded inline-flex items-center mr-2" onClick={onCancel}>
+            Cancel
+          </button>
+          <button className="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded inline-flex items-center" onClick={onConfirm}>
+            Confirm
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const Manageproducts = () => {
   const [categories, setCategories] = useState([]);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [products, setProducts] = useState([]);
@@ -29,12 +48,15 @@ const ManageProducts = () => {
   const [showAddForm, setShowAddForm] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [showConfirmation, setShowConfirmation] = useState(false);
+  const [editedDescription, setEditedDescription] = useState('');
+  const [editedStockStatus, setEditedStockStatus] = useState('');
 
   useEffect(() => {
     loadCategories();
     loadProducts();
   }, []);
 
+  
   const loadCategories = () => {
     const db = getDatabase();
     const categoriesRef = ref(db, 'categories');
@@ -125,6 +147,79 @@ const ManageProducts = () => {
     }
   };
 
+  const updateProductDescriptionAndStockStatus = (editedDescription, editedStockStatus) => {
+
+    console.log('Description received:', editedDescription);
+    console.log('Stock status received:', editedStockStatus);
+    // Validate description
+    if (typeof editedDescription !== 'string' || editedDescription.trim() === '') {
+        console.error('Description must be a non-empty string.');
+        return;
+    }
+
+    // Rest of the function remains the same
+    const db = getDatabase();
+    const productRef = ref(db, `products/${selectedProduct.id}`);
+
+    // Fetch the existing product data
+    get(productRef)
+        .then((snapshot) => {
+            const existingProductData = snapshot.val();
+
+            // Construct the updates object with the edited values
+            const updates = {};
+
+            // Check if stockStatus is defined
+            if (editedStockStatus !== undefined) {
+                updates.stockStatus = editedStockStatus;
+            }
+
+            // Check if Description key exists in existing data
+            if (existingProductData && existingProductData.Description) {
+                // If Description key exists, update its value
+                updates.Description = editedDescription;
+            } else {
+                // If Description key does not exist, add it
+                updates.Description = editedDescription;
+            }
+
+            // Send updates to the database
+            return update(productRef, updates);
+        })
+        .then(() => {
+            // Update local state after successful database update
+            setProducts((prevProducts) => {
+                const updatedProducts = prevProducts.map((product) => {
+                    if (product.id === selectedProduct.id) {
+                        // Update the description and stock status in the local state
+                        return {
+                            ...product,
+                            Description: editedDescription,
+                            stockStatus: editedStockStatus
+                        };
+                    }
+                    return product;
+                });
+                return updatedProducts;
+            });
+
+            // Reset edit mode and clear description and stock status states
+            setEditMode(false);
+            setEditedDescription('');
+            setEditedStockStatus('');
+            setShowConfirmation(false); // Hide the confirmation dialog after updating
+        })
+        .catch((error) => {
+            console.error('Error updating product:', error);
+        });
+  };
+
+  const handleUpdateProductDes = () => {
+    setConfirmationMessage("Are you sure you want to update the product?");
+    setConfirmationCallback(() => () => updateProductDescriptionAndStockStatus(editedDescription, editedStockStatus)); // Include parameters
+    setShowConfirmation(true);
+  };
+
   const updateProduct = (updates) => {
     const db = getDatabase();
     const productRef = ref(db, `products/${selectedProduct.id}/Variations/temperature/${selectedTemperature}`);
@@ -204,6 +299,7 @@ const ManageProducts = () => {
   const handleSizeChange = (e) => {
     const newSize = e.target.value;
     setNewSize(newSize); // Update newSize state
+    setSelectedSize(newSize);
   };
 
   const handleAddFormToggle = () => {
@@ -259,6 +355,10 @@ const ManageProducts = () => {
     setConfirmationMessage(`Are you sure you want to delete the product '${product.Name}'?`);
     setConfirmationCallback(() => () => confirmDeleteProduct(product));
     setShowConfirmation(true);
+  };
+  
+  const cancelUpdate = () => {
+    setEditMode(false);
   };
 
   // Function to confirm product deletion
@@ -360,10 +460,24 @@ const ManageProducts = () => {
                 <div className="rounded-lg bg-gray-100 border border-gray-300 p-4 mb-4 shadow-gray-300 shadow-lg order-slip-bg cursor-pointer">
                   {/* Product details */}
                   <div onClick={() => showProductDetails(product)}>
-                    <p className="text-sm md:text-base font-bold">{product.Name}</p>
+                    <p className="text-sm md:text-base font-bold"><strong>{product.Name}</strong></p>
                     <p className="text-sm md:text-sm">
                       Price: {product.Variations.temperature[selectedTemperature] ? Object.values(product.Variations.temperature[selectedTemperature])[0] : ''}
-                    </p>
+                    </p> <p className="font-semibold mt-2">
+                      Stock Status:{" "}
+                    <span
+                      className={`${
+                        product.stockStatus === "Out of Stock"
+                          ? "text-red-500"
+                          : "text-green-500"
+                      }`}
+                    >
+                      {product.stockStatus}
+                    </span>
+                  </p>
+                  <p className="font-semibold mt-2 text-xs border border-gray-200 rounded-lg p-2 bg-emerald-100">
+                    Description: {product.Description}
+                  </p>
                     <img
                       src={product.imageURL}
                       alt={product.Name}
@@ -402,11 +516,11 @@ const ManageProducts = () => {
                 <div>
                   {editMode ? (
                     <button
-                      className="bg-green-500 text-white px-3 py-1 rounded-md mr-2"
-                      onClick={showConfirmation}
-                    >
-                      Update
-                    </button>
+                    className="bg-yellow-600 text-white px-3 py-1 rounded-md mr-2"
+                    onClick={cancelUpdate}
+                  >
+                    Cancel
+                  </button>
                   ) : (
                     <button
                       className="bg-yellow-600 text-white px-3 py-1 rounded-md mr-2"
@@ -432,11 +546,12 @@ const ManageProducts = () => {
                   />
                 </div>
                 <div className="w-2/3 mx-10">
-                  <p className="font-bold">
-                    Category: {selectedProduct.Category}
+                  <p className="font-semibold">
+                    <strong>Category:</strong> {selectedProduct.Category}
                   </p>
+              
                   <p className="font-semibold mt-2">
-                    Price: {' '}
+                    <strong>Price:</strong> {' '}
                     {selectedProduct && selectedProduct.Variations && selectedProduct.Variations.temperature && selectedProduct.Variations.temperature[selectedTemperature]
                       ? (
                         selectedProduct.Variations.temperature[selectedTemperature][selectedSize || Object.keys(selectedProduct.Variations.temperature[selectedTemperature])[0]] || ''
@@ -444,6 +559,38 @@ const ManageProducts = () => {
                       : ''}
                   </p>
                   <p>{selectedProduct.description}</p>
+                  <div>
+                    <p className="font-semibold mt-2">
+                      <strong>Stock Status:</strong>{" "}
+                      {editMode ? (
+                        <select
+                          value={editedStockStatus || (selectedProduct && selectedProduct.stockStatus) || ''}
+                          onChange={(e) => setEditedStockStatus(e.target.value)}
+                          className="mt-1 p-2 border-black border-2 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
+                        >
+                          <option value="In Stock">In Stock</option>
+                          <option value="Out of Stock">Out of Stock</option>
+                        </select>
+                      ) : (
+                        selectedProduct && selectedProduct.stockStatus || ''
+                      )}
+                    </p>
+                    <p className="font-semibold mt-2 border border-gray-200 rounded-lg p-2 bg-emerald-200">
+                      <strong>Description:</strong> 
+                      {editMode ? (
+                        <textarea
+                          value={editedDescription || (selectedProduct && selectedProduct.Description) || ''}
+                          onChange={(e) => setEditedDescription(e.target.value)}
+                          className="mt-1 p-2 block w-full border-black border-2 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
+                        />
+                      ) : (
+                        selectedProduct && selectedProduct.Description || ''
+                      )}
+                    </p>
+                    {editMode && (
+                    <button onClick={handleUpdateProductDes} className="mt-2 p-2 bg-blue-500 text-white rounded-md">Submit Changes</button>
+                    )}
+                  </div>
                   <div className="mt-10">
                     <button
                       className={`bg-black text-white px-3 py-1 rounded-md mr-2 ${
@@ -477,7 +624,19 @@ const ManageProducts = () => {
                           <p>{size}</p>
                         </div>
                         {editMode && (
-                          <button className="text-white bg-red-600 px-2 rounded-md" onClick={() => handleDeleteSize(size)}>Delete</button>
+                          <button
+                            className="text-white bg-red-600 px-2 rounded-md"
+                            onClick={() => {
+                              if (Object.keys(selectedProduct.Variations.temperature[selectedTemperature]).length > 1) {
+                                handleDeleteSize(size);
+                              } else {
+                                console.log("Cannot delete the only available size.");
+                              }
+                            }}
+                            disabled={Object.keys(selectedProduct.Variations.temperature[selectedTemperature]).length === 1}
+                          >
+                            Delete
+                          </button>
                         )}
                       </div>
                     ))}
@@ -521,7 +680,7 @@ const ManageProducts = () => {
                       <label className="font-bold">Select Size:</label>
                       <select
                         value={selectedSize}
-                        onChange={(e) => handleSizeChange(e.target.value)} // Use onChange to capture size
+                        onChange={handleSizeChange} // Use onChange to capture size
                         className="block w-full mt-1 p-2 border-black border-2 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
                       >
                         {selectedProduct &&
@@ -565,23 +724,4 @@ const ManageProducts = () => {
   );
 };
 
-export default ManageProducts;
-
-// ConfirmationDialog component
-const ConfirmationDialog = ({ message, onCancel, onConfirm }) => {
-  return (
-    <div className="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50">
-      <div className="bg-white p-8 rounded-lg">
-        <p className="text-lg font-semibold">{message}</p>
-        <div className="mt-4 flex justify-end">
-          <button className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded inline-flex items-center mr-2" onClick={onCancel}>
-            Cancel
-          </button>
-          <button className="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded inline-flex items-center" onClick={onConfirm}>
-            Confirm
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-};
+export default Manageproducts;
