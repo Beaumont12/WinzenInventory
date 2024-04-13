@@ -41,6 +41,8 @@ const Overallsale = () => {
   const [totalSalesForWeek, setTotalSalesForWeek] = useState(0); // State to hold total sales for the selected week
   const [totalQuantitySold, setTotalQuantitySold] = useState(0); // State to hold total quantity sold for the selected week
   const [totalCustomers, setTotalCustomers] = useState(0);
+  const [firstDayOfWeek, setFirstDayOfWeek] = useState(null);
+  const [lastDayOfWeek, setLastDayOfWeek] = useState(null);
   const [totalWeeksInMonth, setTotalWeeksInMonth] = useState(0); // State to hold total number of weeks in the selected month
 
   useEffect(() => {
@@ -82,17 +84,19 @@ const Overallsale = () => {
             let firstDayOfWeek = new Date(firstDayOfMonth);
             firstDayOfWeek.setDate(firstDayOfMonth.getDate() + (selectedWeekNumber * 7)); // Corrected calculation
             firstDayOfWeek.setHours(0, 0, 0, 0); // Set time to 00:00:00
-        
+            setFirstDayOfWeek(firstDayOfWeek)
             // Calculate the end date of the week (Sunday)
             let lastDayOfWeek = new Date(firstDayOfWeek);
             lastDayOfWeek.setDate(firstDayOfWeek.getDate() + 6);
             lastDayOfWeek.setHours(23, 59, 59, 999); // Set time to 23:59:59.999
-        
+            setLastDayOfWeek(lastDayOfWeek)
             // Ensure the end date is within the selected month
             if (lastDayOfWeek.getMonth() !== monthIndex) {
                 // If the end date is not within the selected month, set it to the last day of the selected month
                 lastDayOfWeek = new Date(selectedYear, monthIndex + 1, 0); // Set to last day of previous month
             }
+
+            
         
             console.log('Start date of week:', firstDayOfWeek);
             console.log('End date of week:', lastDayOfWeek);
@@ -294,6 +298,9 @@ const Overallsale = () => {
               {chartData && (
                 <div>
                   <h2 className="text-2xl font-semibold mb-4">Total Sales</h2>
+
+                  <h3 className="text-lg mb-2">Start date of week: {firstDayOfWeek ? firstDayOfWeek.toString() : null}</h3>
+                  <h3 className="text-lg mb-4">End date of week: {lastDayOfWeek ? lastDayOfWeek.toString() : null}</h3>
                   <Bar options={options} data={{ ...chartData, datasets: [chartData.datasets[0]] }} />
                   <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-4">
                     {chartData.labels.map((label, index) => (
