@@ -66,6 +66,7 @@ const History = () => {
         {Object.values(orderItems).map((item, index) => (
           <li key={index}>
             <p>Product Name: {item.productName}</p>
+            <p>Variation: {item.variation}</p>
             <p>Quantity: {item.quantity}</p>
             <p>Size: {item.size}</p>
             <p>Price: {item.price}</p>
@@ -221,7 +222,7 @@ const History = () => {
             <span className="text-lg w-1/5 text-center">Total</span>
           </div>
           <ul>
-            {filteredHistoryData.map((history) => (
+          {filteredHistoryData.slice().reverse().map((history) => (
               <li key={history.id} className="cursor-pointer" onClick={() => handleHistoryClick(history.id)}>
                 <div className="flex justify-between items-center p-4 my-2 bg-white rounded-lg shadow-md">
                   <span className="text-lg font-semibold w-1/5 text-center text-gray-600">{history.orderNumber}</span>

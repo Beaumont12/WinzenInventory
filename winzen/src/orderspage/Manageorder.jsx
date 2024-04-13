@@ -144,6 +144,7 @@ const Manageorder = () => {
                           <p className="text-xs md:text-base">{order[key].ProductName}</p>
                           <p className="text-xs md:text-sm">Price: &#8369;{order[key].Price}</p>
                           <p className="text-xs md:text-sm">Quantity: {order[key].Quantity}</p>
+                          <p className="text-xs md:text-sm">Variation: {order[key].Variation}</p>
                           <p className="text-xs md:text-sm">Size: {order[key].Size}</p>
                         </li>
                       ))}

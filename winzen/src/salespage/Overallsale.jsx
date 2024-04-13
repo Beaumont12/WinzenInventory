@@ -73,31 +73,25 @@ const Overallsale = () => {
           if (selectedWeek !== 'Overall') {
             const selectedYear = selectedDate.getFullYear();
             const monthIndex = months.indexOf(selectedMonth) - 1;
-            const selectedWeekNumber = parseInt(selectedWeek) - 2; // Adjusted to start from 0 for the first week of the month
-        
+            const selectedWeekNumber = parseInt(selectedWeek) - 1; // Adjusted to start from 0 for the first week of the month
+            
             // Calculate the start date of the month
             const firstDayOfMonth = new Date(selectedYear, monthIndex, 1);
-        
-            // Find the first Monday in the month
-            let firstMondayOfMonth = new Date(firstDayOfMonth);
-            while (firstMondayOfMonth.getDay() !== 1) { // 1 represents Monday
-                firstMondayOfMonth.setDate(firstMondayOfMonth.getDate() + 1);
-            }
-        
+            
             // Calculate the start date of the selected week
-            let firstDayOfWeek = new Date(firstMondayOfMonth);
-            firstDayOfWeek.setDate(firstMondayOfMonth.getDate() + (selectedWeekNumber * 7)); // Corrected calculation
+            let firstDayOfWeek = new Date(firstDayOfMonth);
+            firstDayOfWeek.setDate(firstDayOfMonth.getDate() + (selectedWeekNumber * 7)); // Corrected calculation
             firstDayOfWeek.setHours(0, 0, 0, 0); // Set time to 00:00:00
-
+        
             // Calculate the end date of the week (Sunday)
             let lastDayOfWeek = new Date(firstDayOfWeek);
             lastDayOfWeek.setDate(firstDayOfWeek.getDate() + 6);
             lastDayOfWeek.setHours(23, 59, 59, 999); // Set time to 23:59:59.999
-
+        
             // Ensure the end date is within the selected month
             if (lastDayOfWeek.getMonth() !== monthIndex) {
                 // If the end date is not within the selected month, set it to the last day of the selected month
-                lastDayOfWeek = new Date(selectedYear, monthIndex + 1, 0); // Set to last day of selected month
+                lastDayOfWeek = new Date(selectedYear, monthIndex + 1, 0); // Set to last day of previous month
             }
         
             console.log('Start date of week:', firstDayOfWeek);
@@ -107,15 +101,16 @@ const Overallsale = () => {
             console.log("Filtered data before filtering:", filteredData);
         
             filteredData = filteredData.filter(item => {
-              const orderDate = new Date(item.orderDateTime);
-              const isInWeekRange = orderDate >= firstDayOfWeek && orderDate <= lastDayOfWeek;
-              console.log("Order date:", orderDate.toDateString());
-              console.log("Is in week range?", isInWeekRange);
-              return isInWeekRange;
+                const orderDate = new Date(item.orderDateTime);
+                const isInWeekRange = orderDate >= firstDayOfWeek && orderDate <= lastDayOfWeek;
+                console.log("Order date:", orderDate.toDateString());
+                console.log("Is in week range?", isInWeekRange);
+                return isInWeekRange;
             });
         
             console.log("Filtered data after filtering:", filteredData);
-        }        
+        }
+             
         } else {
           const selectedYear = selectedDate.getFullYear();
           const selectedMonth = selectedDate.getMonth();
@@ -198,10 +193,15 @@ const Overallsale = () => {
   };  
 
   const calculateWeeksInMonth = (year, month) => {
-    const totalDaysInMonth = new Date(year, month + 1, 0).getDate();
-    const weeks = Math.ceil(totalDaysInMonth / 7);
-    return weeks;
-  };
+    const firstDayOfMonth = new Date(year, month, 1);
+    const firstDayOfWeek = firstDayOfMonth.getDay(); // Sunday: 0, Monday: 1, ..., Saturday: 6
+    const daysInMonth = new Date(year, month + 1, 0).getDate(); // Total days in the month
+    const daysLeftInFirstWeek = 7 - (firstDayOfWeek === 0 ? 7 : firstDayOfWeek); // Days left in the first week
+    const remainingDays = daysInMonth - daysLeftInFirstWeek; // Remaining days after the first week
+    const fullWeeks = Math.ceil(remainingDays / 7); // Number of full weeks in the month
+    return fullWeeks + 1; // Add 1 to include the first week
+};
+
 
   const handleMonthChange = (e) => {
     setSelectedMonth(e.target.value);
