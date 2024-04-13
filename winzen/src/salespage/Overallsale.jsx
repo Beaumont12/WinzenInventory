@@ -93,7 +93,8 @@ const Overallsale = () => {
             // Ensure the end date is within the selected month
             if (lastDayOfWeek.getMonth() !== monthIndex) {
                 // If the end date is not within the selected month, set it to the last day of the selected month
-                lastDayOfWeek = new Date(selectedYear, monthIndex + 1, 0); // Set to last day of previous month
+                lastDayOfWeek = new Date(selectedYear, monthIndex + 1, 0); // Set to last day of month
+                setLastDayOfWeek(lastDayOfWeek)
             }
 
             
