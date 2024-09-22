@@ -17,14 +17,18 @@ const app = initializeApp(firebaseConfig);
 
 const Ingredients = () => {
   const [ingredients, setIngredients] = useState({});
-  const [selectedCategory, setSelectedCategory] = useState('Bread'); // Default category
-  const [searchQuery, setSearchQuery] = useState(''); // Search query
-  const [isModalOpen, setIsModalOpen] = useState(false); // Modal state
-  const [newProductName, setNewProductName] = useState(''); // New product name
-  const [newProductCategory, setNewProductCategory] = useState(''); // New product category
-  const [newProductQuantity, setNewProductQuantity] = useState(0); // New product quantity
-  const [deleteMode, setDeleteMode] = useState(false); // Delete mode state
-  const [itemsToDelete, setItemsToDelete] = useState([]); // Items selected for deletion
+  const [selectedCategory, setSelectedCategory] = useState('Bread');
+  const [searchQuery, setSearchQuery] = useState(''); 
+  const [isModalOpen, setIsModalOpen] = useState(false); 
+  const [newProductName, setNewProductName] = useState('');
+  const [newProductCategory, setNewProductCategory] = useState('');
+  const [newProductQuantity, setNewProductQuantity] = useState(0); 
+  const [newCategoryName, setNewCategoryName] = useState('');
+  const [deleteMode, setDeleteMode] = useState(false); 
+  const [itemsToDelete, setItemsToDelete] = useState([]);
+  const [oldProductStock, setOldProductStock] = useState(0); 
+  const [productType, setProductType] = useState('New Product');
+  
 
   useEffect(() => {
     const db = getDatabase(app);
@@ -76,20 +80,95 @@ const Ingredients = () => {
   // Function to handle saving new item
   const handleSaveNewItem = () => {
     const db = getDatabase(app);
-    const productId = `ID_${Date.now()}`; // Generate a unique ID for the new product
-    const newProductData = {
-      name: newProductName,
-      stocks: newProductQuantity,
-    };
-
-    // Save new product in the selected category in Firebase
-    set(ref(db, `stocks/Ingredients/${newProductCategory}/${productId}`), newProductData).then(() => {
-      alert('New stock item added successfully!');
-      setIsModalOpen(false); // Close modal after saving
-    }).catch((error) => {
-      console.error('Error saving new item:', error);
-    });
+  
+    // Check if category is valid
+    if (!newProductCategory) {
+      alert('Please select a category.');
+      return;
+    }
+  
+    // Handle adding a new category
+    if (newProductCategory === "Add New Category" && newCategoryName.trim() === '') {
+      alert('Please enter a new category name.');
+      return;
+    }
+  
+    // Ensure that either new product name is entered or an existing one is selected
+    if (productType === "New Product" && newProductName.trim() === '') {
+      alert('Please enter a product name.');
+      return;
+    }
+  
+    // If adding a new category, save it in Firebase
+    if (newProductCategory === "Add New Category") {
+      const categoryRef = ref(db, `stocks/Ingredients/${newCategoryName}`);
+      set(categoryRef, {}).then(() => {
+        // Now proceed to save the new product in this new category
+        const productId = `ID_${Date.now()}`; // Generate a unique ID for the new product
+        const newProductData = {
+          name: newProductName,
+          stocks: newProductQuantity,
+        };
+  
+        set(ref(db, `stocks/Ingredients/${newCategoryName}/${productId}`), newProductData)
+          .then(() => {
+            alert('New stock item added successfully!');
+            resetModal(); // Reset modal after saving
+          })
+          .catch((error) => {
+            console.error('Error saving new item:', error);
+          });
+      }).catch((error) => {
+        console.error('Error saving new category:', error);
+      });
+    } else {
+      // Handle Old Product: Update existing stock
+      if (productType === "Old Product" && newProductName) {
+        const currentStock = ingredients[newProductCategory][newProductName].stocks;
+        const updatedStock = parseInt(currentStock) + parseInt(newProductQuantity);
+  
+        set(ref(db, `stocks/Ingredients/${newProductCategory}/${newProductName}/stocks`), updatedStock)
+          .then(() => {
+            alert('Stock updated successfully!');
+            resetModal(); // Reset modal after updating
+          })
+          .catch((error) => {
+            console.error('Error updating stock:', error);
+          });
+      } else {
+        // Handle New Product without a new category
+        if (newProductName && !ingredients[newProductCategory]?.[newProductName]) {
+          const productId = `ID_${Date.now()}`; // Generate a unique ID for the new product
+          const newProductData = {
+            name: newProductName,
+            stocks: newProductQuantity,
+          };
+  
+          // Save new product in the selected category in Firebase
+          set(ref(db, `stocks/Ingredients/${newProductCategory}/${productId}`), newProductData)
+            .then(() => {
+              alert('New stock item added successfully!');
+              resetModal(); // Reset modal after saving
+            })
+            .catch((error) => {
+              console.error('Error saving new item:', error);
+            });
+        }
+      }
+    }
   };
+  
+  // Function to reset the modal state
+  const resetModal = () => {
+    setProductType(''); // Reset product type
+    setNewProductCategory(''); // Reset new product category
+    setNewCategoryName(''); // Reset new category name
+    setNewProductName(''); // Reset product name
+    setNewProductQuantity(0); // Reset quantity
+    setOldProductStock(0); // Reset stock display for old product
+    setIsModalOpen(false); // Close modal
+  };
+    
 
   // Handle delete mode toggle
   const handleToggleDeleteMode = () => {
@@ -245,127 +324,136 @@ const Ingredients = () => {
 
       {/* Modal for Adding New Item */}
       {isModalOpen && (
-  <div className="fixed top-0 right-0 w-1/2 h-full bg-[#F9F9F9] shadow-lg z-50 opacity-95">
-    <div className="p-6">
-      <h2 className="text-2xl font-bold mb-4">Add or Update Item</h2>
+        <div className="fixed top-0 right-0 w-1/2 h-full bg-[#F9F9F9] shadow-lg z-50 opacity-95">
+          <div className="p-6">
+            <h2 className="text-2xl font-bold mb-4">Add or Update Item</h2>
 
-      {/* Product Type (New or Old) */}
-      <div className="mb-4">
-        <label className="block text-gray-700 text-sm font-bold mb-2">Product Type</label>
-        <select
-          className="border rounded-lg p-2 w-full"
-          value={newProductCategory ? 'Old Product' : 'New Product'} // If there's a category selected, it's an old product.
-          onChange={(e) => {
-            const type = e.target.value;
-            setNewProductCategory(type === 'Old Product' ? '' : newProductCategory); // If 'Old Product' is selected, reset the category and product.
-            setNewProductName(''); // Reset product name if switching types.
-            setOldProductStock(0); // Reset stock display for old product.
-          }}
-        >
-          <option value="New Product">New Product</option>
-          <option value="Old Product">Old Product</option>
-        </select>
-      </div>
+            {/* Product Type (New or Old) */}
+            <div className="mb-4">
+              <label className="block text-gray-700 text-sm font-bold mb-2">Stock Type</label>
+              <select
+                className="border rounded-lg p-2 w-full"
+                value={productType}
+                onChange={(e) => {
+                  const type = e.target.value;
+                  setProductType(type);
+                  setNewProductCategory(''); // Reset category when switching types.
+                  setNewProductName(''); // Reset product name if switching types.
+                  setOldProductStock(0); // Reset stock display for old product.
+                  setNewCategoryName(''); // Reset new category name when switching to old product
+                }}
+              >
+                <option value="New Product">New Stock</option>
+                <option value="Old Product">Old Stock</option>
+              </select>
+            </div>
 
-      {/* Category Selection */}
-      <div className="mb-4">
-        <label className="block text-gray-700 text-sm font-bold mb-2">Category</label>
-        <select
-          className="border rounded-lg p-2 w-full"
-          value={newProductCategory}
-          onChange={(e) => {
-            setNewProductCategory(e.target.value);
-            setNewProductName(''); // Reset product name when category changes.
-            setOldProductStock(0); // Reset stock display for old product.
-          }}
-          disabled={!newProductCategory && newProductName !== ''} // Disable when adding a new product
-        >
-          <option value="">Select Category</option>
-          {Object.keys(ingredients).map((category) => (
-            <option key={category} value={category}>{category}</option>
-          ))}
-        </select>
-      </div>
+            {/* Category Selection */}
+            <div className="mb-4">
+              <label className="block text-gray-700 text-sm font-bold mb-2">Category</label>
+              <select
+                className="border rounded-lg p-2 w-full"
+                value={newProductCategory}
+                onChange={(e) => {
+                  const selectedCategory = e.target.value;
+                  setNewProductCategory(selectedCategory);
+                  setNewProductName(''); // Reset product name when category changes.
+                  setOldProductStock(0); // Reset stock display for old product.
+                  if (selectedCategory !== "Add New Category") {
+                    setNewCategoryName(''); // Reset new category name if not adding a new category
+                  }
+                }}
+              >
+                <option value="">Select Category</option>
+                {Object.keys(ingredients).map((category) => (
+                  <option key={category} value={category}>{category}</option>
+                ))}
+                {productType === "New Product" && <option value="Add New Category">Add New Category</option>}
+              </select>
+            </div>
 
-      {/* For Old Product: Product Name Picker */}
-      {newProductCategory && newProductName === '' && (
-        <div className="mb-4">
-          <label className="block text-gray-700 text-sm font-bold mb-2">Product Name</label>
-          <select
-            className="border rounded-lg p-2 w-full"
-            value={newProductName}
-            onChange={(e) => {
-              setNewProductName(e.target.value);
-              setOldProductStock(ingredients[newProductCategory][e.target.value].stocks || 0);
-            }}
-          >
-            <option value="">Select Product</option>
-            {Object.entries(ingredients[newProductCategory] || {}).map(([key, ingredient]) => (
-              <option key={key} value={key}>{ingredient.name}</option>
-            ))}
-          </select>
+            {/* New Category Input */}
+            {newProductCategory === "Add New Category" && productType === "New Product" && (
+              <div className="mb-4">
+                <label className="block text-gray-700 text-sm font-bold mb-2">New Category Name</label>
+                <input
+                  type="text"
+                  className="border rounded-lg p-2 w-full"
+                  placeholder="Enter new category name"
+                  value={newCategoryName}
+                  onChange={(e) => setNewCategoryName(e.target.value)}
+                />
+              </div>
+            )}
+
+            {/* Product Name Input (for New Product) */}
+            {productType === "New Product" && (
+              <div className="mb-4">
+                <label className="block text-gray-700 text-sm font-bold mb-2">Product Name</label>
+                <input
+                  type="text"
+                  className="border rounded-lg p-2 w-full"
+                  placeholder="Enter product name"
+                  value={newProductName}
+                  onChange={(e) => setNewProductName(e.target.value)}
+                />
+              </div>
+            )}
+
+            {/* For Old Product: Product Name Picker */}
+            {productType === "Old Product" && newProductCategory && (
+              <div className="mb-4">
+                <label className="block text-gray-700 text-sm font-bold mb-2">Product Name</label>
+                <select
+                  className="border rounded-lg p-2 w-full"
+                  value={newProductName}
+                  onChange={(e) => {
+                    setNewProductName(e.target.value);
+                    setOldProductStock(ingredients[newProductCategory][e.target.value]?.stocks || 0);
+                  }}
+                >
+                  <option value="">Select Product</option>
+                  {Object.entries(ingredients[newProductCategory] || {}).map(([key, ingredient]) => (
+                    <option key={key} value={key}>{ingredient.name}</option>
+                  ))}
+                </select>
+                {/* Display current stock for the selected old product */}
+                {newProductName && (
+                  <div className="mt-2 text-gray-600">
+                    Current Stock: {oldProductStock}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Quantity Input */}
+            <div className="mb-4">
+              <label className="block text-gray-700 text-sm font-bold mb-2">Quantity</label>
+              <input
+                type="number"
+                className="border rounded-lg p-2 w-full"
+                placeholder="Enter quantity"
+                value={newProductQuantity}
+                onChange={(e) => setNewProductQuantity(e.target.value)}
+              />
+            </div>
+
+            <button
+              onClick={handleSaveNewItem}
+              className="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-md"
+            >
+              Save
+            </button>
+
+            <button
+              onClick={handleCloseModal}
+              className="mt-4 bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded-md"
+            >
+              Close
+            </button>
+          </div>
         </div>
       )}
-
-      {/* For New Product: Product Name Input */}
-      {newProductCategory && newProductName !== '' && (
-        <div className="mb-4">
-          <label className="block text-gray-700 text-sm font-bold mb-2">Product Name</label>
-          <input
-            type="text"
-            className="border rounded-lg p-2 w-full"
-            placeholder="Enter product name"
-            value={newProductName}
-            onChange={(e) => setNewProductName(e.target.value)}
-          />
-        </div>
-      )}
-
-      {/* Quantity for Old Product */}
-      {newProductCategory && newProductName && oldProductStock >= 0 && (
-        <div className="mb-4">
-          <label className="block text-gray-700 text-sm font-bold mb-2">Current Stock: {oldProductStock}</label>
-          <input
-            type="number"
-            className="border rounded-lg p-2 w-full"
-            placeholder="Enter stock adjustment"
-            value={newProductQuantity}
-            onChange={(e) => setNewProductQuantity(e.target.value)}
-          />
-        </div>
-      )}
-
-      {/* Quantity for New Product */}
-      {!newProductCategory && (
-        <div className="mb-4">
-          <label className="block text-gray-700 text-sm font-bold mb-2">Quantity</label>
-          <input
-            type="number"
-            className="border rounded-lg p-2 w-full"
-            placeholder="Enter quantity"
-            value={newProductQuantity}
-            onChange={(e) => setNewProductQuantity(e.target.value)}
-          />
-        </div>
-      )}
-
-      <button
-        onClick={handleSaveNewItem}
-        className="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-md"
-      >
-        Save
-      </button>
-
-      <button
-        onClick={handleCloseModal}
-        className="mt-4 bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded-md"
-      >
-        Close
-      </button>
-    </div>
-  </div>
-)}
-
 
     </div>
   );
