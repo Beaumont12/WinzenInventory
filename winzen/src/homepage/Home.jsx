@@ -129,7 +129,7 @@ const Home = () => {
           const orderDateTime = childSnapshot.val().orderDateTime;
           const orderMonth = new Date(orderDateTime).toLocaleString('default', { month: 'short' });
           if (selectedMonth === '' || orderMonth === selectedMonth) {
-            total += childSnapshot.val().total;
+            total += parseFloat(childSnapshot.val().total) || 0;
             const orderStatus = childSnapshot.val().status;
             if (orderStatus === 'Cancelled') {
               cancelled++;
@@ -279,7 +279,7 @@ const Home = () => {
             icon={<i className="material-icons text-white shadow-xl rounded-lg p-1 text-7xl">monetization_on</i>} 
             bgColor="red"
             title="Total Sales"
-            value={<span className="text-md">{totalSales}</span>}
+            value={<span className="text-md">{totalSales.toFixed(2)}</span>}
           />
         </div>
         <div className="mt-10 flex justify-center">

@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import logo from './assets/images/logo1.png'
-import { FaSignOutAlt, FaChartBar, FaClipboardList, FaTasks, FaPlusSquare, FaExchangeAlt,FaUserCog, FaMoneyCheckAlt, FaUserPlus, FaHistory } from 'react-icons/fa'; // Import SVG icons from react-icons
+import { FaUtensils, FaListAlt, FaSignOutAlt, FaChartBar, FaClipboardList, FaTasks, FaPlusSquare, FaExchangeAlt,FaUserCog, FaMoneyCheckAlt, FaUserPlus, FaHistory, FaXbox, FaBox, FaBoxes, FaChevronDown } from 'react-icons/fa'; // Import SVG icons from react-icons
 
 const Sidebar = ({ handleLogout }) => {
   const [activeItem, setActiveItem] = useState(null);
   const navigate = useNavigate();
+  const [isInventoryOpen, setIsInventoryOpen] = useState(false);
 
   const handleLogoutClick = () => {
     handleLogout(); // Call the handleLogout function passed from props
@@ -16,12 +17,18 @@ const Sidebar = ({ handleLogout }) => {
     setActiveItem(itemName === activeItem ? null : itemName);
   };
 
+  const toggleInventory = () => {
+    setIsInventoryOpen(!isInventoryOpen); // Toggle the Inventory submenu
+  };
+
+  const activeItemStyles = `bg-yellow-600 relative`;
+
   return (
     <div className="fixed left-0 top-0 bg-emerald-900 w-55 h-full overflow-y-auto">
       <style>
             {`
               ::-webkit-scrollbar {
-                width: 10px;
+                width: 5px;
                 height: 5px;
               }
 
@@ -94,6 +101,67 @@ const Sidebar = ({ handleLogout }) => {
             <span className="align-middle">Add Product</span>
           </li>
         </NavLink>
+        <h3 className="text-white text-sm ml-2 mt-3 mb-1 font-semibold opacity-65">Inventory</h3>
+          <li
+            className={`px-4 py-2 text-white hover:bg-yellow-600 cursor-pointer font-semibold flex items-center transition duration-300 ease-in-out transform hover:scale-105 ${
+              isInventoryOpen ? activeItemStyles : ''
+            }`}
+            onClick={toggleInventory} // Toggle Inventory section
+          >
+            {isInventoryOpen && <span className="active-line"></span>}
+            <FaBoxes className="mr-3 icon" />
+            <span className="align-middle">Stocks</span>
+
+            <FaChevronDown 
+              className={`ml-auto transition-transform ${isInventoryOpen ? 'rotate-180' : ''}`} 
+            />
+            {isInventoryOpen && <span className="active-circle"></span>}
+          </li>
+
+          {isInventoryOpen && ( // Show sub-links only when Inventory is open
+            <ul className="ml-6 relative"> {/* Make this relative to position the circle */}
+              
+              {/* Vertical line */}
+              <span className="absolute h-full left-0 top-0 border-l-2 border-gray-300"></span>
+
+              {/* Moving circle on the line */}
+              <span
+                className={`absolute w-2.5 h-2.5 rounded-full transition-all duration-300 ease-in-out transform -translate-x-1/2 ${
+                  activeItem === "Ingredients" 
+                    ? 'bg-amber-400 top-4' // Circle color changes when active
+                    : activeItem === "Utensils" 
+                    ? 'bg-amber-400 top-14' // Moves circle based on the active item
+                    : 'bg-gray-300' // Default circle color when inactive
+                }`}
+              ></span>
+
+              <NavLink to="/inventory/ingredients" onClick={() => handleItemClick("Ingredients")}>
+                <li
+                  className={`px-4 py-2.5 pl-8 cursor-pointer font-semibold flex items-center transition duration-300 ease-in-out transform hover:scale-105 ${
+                    activeItem === "Ingredients" 
+                      ? 'text-yellow-600' // Text color when active
+                      : 'text-white'
+                  } relative`} // No background color, just text change on active
+                >
+                  <FaListAlt className="mr-3 icon" />
+                  <span className="align-middle">Ingredients</span>
+                </li>
+              </NavLink>
+
+              <NavLink to="/inventory/utensils" onClick={() => handleItemClick("Utensils")}>
+                <li
+                  className={`px-4 py-2 pl-8 cursor-pointer font-semibold flex items-center transition duration-300 ease-in-out transform hover:scale-105 ${
+                    activeItem === "Utensils" 
+                      ? 'text-yellow-600' // Text color when active
+                      : 'text-white'
+                  } relative`} // No background color, just text change on active
+                >
+                  <FaUtensils className="mr-3 icon" />
+                  <span className="align-middle">Utensils</span>
+                </li>
+              </NavLink>
+            </ul>
+          )}
         <h3 className="text-white text-sm ml-2 mt-3 mb-1 font-semibold opacity-65">Reports</h3>
         <NavLink to="/transactions" onClick={() => handleItemClick("Transactions")}>
           <li 

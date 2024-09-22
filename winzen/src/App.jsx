@@ -11,7 +11,10 @@ import Addproducts from './productspage/Addproducts';
 import Overallsale from './salespage/Overallsale';
 import Manageuser from './userspage/Manageuser';
 import Adduser from './userspage/Adduser';
-import Layout from './Layout'; // Import the Layout component
+import Layout from './Layout'; 
+import Utensils from './inventory/Utensils';
+import Ingredients from './inventory/Ingredients';
+import Inventory from './inventory/Inventory';
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(() => {
@@ -50,6 +53,10 @@ function App() {
           <Route path="/add-category" element={<Layout handleLogout={handleLogout}><Addcategory /></Layout>} />
           <Route path="/manage-product" element={<Layout handleLogout={handleLogout}><Manageproducts /></Layout>} />
           <Route path="/add-product" element={<Layout handleLogout={handleLogout}><Addproducts /></Layout>} />
+          <Route path="/inventory" element={<Layout handleLogout={handleLogout}><Inventory /></Layout>}>
+            <Route path="/inventory/ingredients" element={<Layout handleLogout={handleLogout}><Ingredients /> </Layout>} />
+            <Route path="/inventory/utensils" element={<Layout handleLogout={handleLogout}><Utensils /></Layout>} />
+          </Route>
           <Route path="/sales-report" element={<Layout handleLogout={handleLogout}><Overallsale /></Layout>} />
           <Route path="/manage-users" element={<Layout handleLogout={handleLogout}><Manageuser /></Layout>} />
           <Route path="/transactions" element={<Layout handleLogout={handleLogout}><History /></Layout>} />

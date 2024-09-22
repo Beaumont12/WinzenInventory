@@ -6,7 +6,7 @@ const Layout = ({ children, handleLogout  }) => {
   return (
     <div className="flex h-screen" style={{ backgroundImage: `url(${Logo})`, backgroundSize: 'cover', backgroundPosition: 'center', backgroundRepeat: 'no-repeat' }}>
       <Sidebar handleLogout={handleLogout} />
-      <div className="flex-1 overflow-y-auto bg-white">
+      <div className="flex-1 overflow-y-auto bg-[#F9F9F9]">
         <div className="ml-56 ">
           {children}
         </div>
