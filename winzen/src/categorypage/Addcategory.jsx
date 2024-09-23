@@ -89,6 +89,27 @@ const AddCategory = () => {
 
   return (
     <div className="flex-1 bg-white bg-opacity-20 bg-cover bg-center bg-no-repeat h-screen">
+      <style>
+        {`
+          ::-webkit-scrollbar {
+            width: 5px;
+            height: 5px;
+          }
+
+          ::-webkit-scrollbar-track {
+            background: transparent;
+          }
+
+          ::-webkit-scrollbar-thumb {
+            background: linear-gradient(180deg, rgba(165,164,168,1) 0%, rgba(190,190,195,1) 35%, rgba(255,255,255,1) 100%);
+            border-radius: 0px;
+          }
+
+          ::-webkit-scrollbar-thumb:hover {
+            background: #555;
+          }
+        `}
+      </style>
       <div className="p-4">
         <h1 className="text-6xl text-black text-center mt-2 font-bold ">Add Category</h1>
         <h3 className="text-lg md:text-base text-gray-200 text-center mt-4 md:mt-8 font-semibold bg-teal-800">MAKE SURE CATEGORY ID IS UNIQUE</h3>

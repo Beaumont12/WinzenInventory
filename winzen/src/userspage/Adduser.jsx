@@ -190,7 +190,7 @@ const Adduser = () => {
       <style>
         {`
           ::-webkit-scrollbar {
-            width: 10px;
+            width: 5px;
             height: 5px;
           }
 

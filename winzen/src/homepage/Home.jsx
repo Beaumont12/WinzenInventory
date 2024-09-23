@@ -221,7 +221,7 @@ const Home = () => {
       <style>
         {`
           ::-webkit-scrollbar {
-            width: 10px;
+            width: 5px;
             height: 5px;
           }
 
@@ -307,7 +307,7 @@ const Home = () => {
           <style>
                 {`
                   ::-webkit-scrollbar {
-                    width: 10px;
+                    width: 5px;
                     height: 5px;
                   }
 

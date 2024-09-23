@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { getDatabase, ref, onValue, set, remove } from 'firebase/database';
 import { initializeApp } from 'firebase/app';
 import { FaSearch } from 'react-icons/fa'; // Importing Font Awesome Search icon
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faExclamationCircle, faTimesCircle } from '@fortawesome/free-solid-svg-icons';
 
 // Initialize Firebase
 const firebaseConfig = {
@@ -38,6 +40,7 @@ const Ingredients = () => {
       const data = snapshot.val();
       if (data) {
         setIngredients(data);
+        checkStockLevels(data);
       }
     });
   }, []);
@@ -114,6 +117,7 @@ const Ingredients = () => {
           .then(() => {
             alert('New stock item added successfully!');
             resetModal(); // Reset modal after saving
+            checkStockLevels();
           })
           .catch((error) => {
             console.error('Error saving new item:', error);
@@ -131,6 +135,7 @@ const Ingredients = () => {
           .then(() => {
             alert('Stock updated successfully!');
             resetModal(); // Reset modal after updating
+            checkStockLevels();
           })
           .catch((error) => {
             console.error('Error updating stock:', error);
@@ -168,7 +173,6 @@ const Ingredients = () => {
     setOldProductStock(0); // Reset stock display for old product
     setIsModalOpen(false); // Close modal
   };
-    
 
   // Handle delete mode toggle
   const handleToggleDeleteMode = () => {
@@ -197,6 +201,75 @@ const Ingredients = () => {
     }
   };
 
+  const handleDecrementStock = (key, currentStock) => {
+    if (currentStock > 0) {
+      const updatedStocks = currentStock - 1;
+      const db = getDatabase(app);
+
+      set(ref(db, `stocks/Ingredients/${selectedCategory}/${key}/stocks`), updatedStocks)
+        .then(() => {
+          alert('Stock decremented successfully!');
+        })
+        .catch((error) => {
+          console.error('Error updating stock:', error);
+        });
+    }
+  };
+
+  const [alert, setAlert] = useState({ message: '', type: '', isVisible: false });
+
+  // Function to check stock levels
+  const checkStockLevels = (ingredients) => {
+    if (!ingredients) return;
+
+    let outOfStockCount = 0;
+    let lowStockCount = 0;
+
+    Object.entries(ingredients).forEach(([category, items]) => {
+      Object.entries(items).forEach(([key, ingredient]) => {
+        if (ingredient.stocks === 0) {
+          outOfStockCount++;
+        } else if (ingredient.stocks < 40) {
+          lowStockCount++;
+        }
+      });
+    });
+
+    let alertMessage = '';
+    if (outOfStockCount > 0) {
+      alertMessage += `${outOfStockCount} ingredient${outOfStockCount > 1 ? 's are' : ' is'} out of stock! `;
+    }
+    if (lowStockCount > 0) {
+      alertMessage += `${lowStockCount} ingredient${lowStockCount > 1 ? 's are' : ' is'} low on stock!`;
+    }
+
+    if (alertMessage) {
+      setAlert({ message: alertMessage.trim(), type: outOfStockCount > 0 ? 'error' : 'warning', isVisible: true });
+    } else {
+      setAlert({ message: '', type: '', isVisible: false }); // Clear alert when stock is fine
+    }
+  };
+
+  const renderAlert = () => {
+    if (!alert.isVisible) return null; // Check visibility instead
+  
+    const alertStyles = alert.type === 'error' 
+      ? 'bg-red-500 text-white' 
+      : 'bg-orange-500 text-white';
+    
+    const icon = alert.type === 'error' 
+      ? <FontAwesomeIcon icon={faTimesCircle} className="mr-2" /> // Red error icon
+      : <FontAwesomeIcon icon={faExclamationCircle} className="mr-2" />; // Orange warning icon
+  
+    return (
+      <div className={`fixed top-4 right-4 p-4 rounded shadow-lg flex items-center ${alertStyles}`}>
+        {icon}
+        {alert.message}
+      </div>
+    );
+  };
+  
+
   return (
     <div className="p-4 -ml-56 bg-[#F9F9F9]">
       <style>
@@ -220,7 +293,7 @@ const Ingredients = () => {
           }
         `}
       </style>
-
+      {renderAlert()}
       <h1 className="text-6xl text-center mt-2 font-bold text-black">Ingredients Inventory</h1>
       <h3 className="text-lg md:text-base bg-teal-800 text-gray-200 mb-6 text-center mt-4 md:mt-8 font-semibold">
         ENJOY BROWSING
@@ -264,7 +337,7 @@ const Ingredients = () => {
                 onClick={handleOpenModal} 
                 className="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-md shadow-md transition-colors mr-2"
               >
-                + Add Stock
+                + Add Ingredient Stock
               </button>
 
               {/* Delete Button */}
@@ -296,29 +369,38 @@ const Ingredients = () => {
         </thead>
         <tbody>
           {filteredIngredients.map(([key, ingredient], index) => {
-            const { status, color } = getStockStatus(ingredient.stocks);
-            return (
-              <tr
-                key={key}
-                className={`${index % 2 === 0 ? 'bg-[#f9f9f9]' : 'bg-white'} hover:bg-[#ff4d4f] hover:text-white transition-colors`}
-              >
-                <td className="py-3 px-6 border-b text-center">{key}</td>
-                <td className="py-3 px-6 border-b text-center">{ingredient.name}</td>
-                <td className="py-3 px-6 border-b text-center">{ingredient.stocks}</td>
-                <td className={`py-3 px-6 border-b text-center ${color}`}>{status}</td>
-
-                {deleteMode && (
-                  <td className="py-3 px-6 border-b text-center">
-                    <input
-                      type="checkbox"
-                      checked={itemsToDelete.includes(key)}
-                      onChange={() => handleSelectItem(key)}
-                    />
+              const { status, color } = getStockStatus(ingredient.stocks);
+              return (
+                <tr
+                  key={key}
+                  className={`${index % 2 === 0 ? 'bg-[#f9f9f9]' : 'bg-white'} hover:bg-gray-200 hover:text-pink-500 transition-colors`}
+                >
+                  <td className="py-3 px-6 border-b text-center">{key}</td>
+                  <td className="py-3 px-6 border-b text-center">{ingredient.name}</td>
+                  <td className="py-3 px-6 border-b text-center flex items-center justify-center">
+                    <span>{ingredient.stocks}</span>
+                    <button
+                      onClick={() => handleDecrementStock(key, ingredient.stocks)}
+                      className="ml-2 w-8 h-8 flex items-center justify-center bg-red-500 text-white rounded-full hover:bg-red-600 transition"
+                      aria-label="Decrement stock"
+                    >
+                      &minus;
+                    </button>
                   </td>
-                )}
-              </tr>
-            );
-          })}
+                  <td className={`py-3 px-6 border-b text-center ${color}`}>{status}</td>
+
+                  {deleteMode && (
+                    <td className="py-3 px-6 border-b text-center">
+                      <input
+                        type="checkbox"
+                        checked={itemsToDelete.includes(key)}
+                        onChange={() => handleSelectItem(key)}
+                      />
+                    </td>
+                  )}
+                </tr>
+              );
+            })}
         </tbody>
       </table>
 
@@ -332,7 +414,7 @@ const Ingredients = () => {
             <div className="mb-4">
               <label className="block text-gray-700 text-sm font-bold mb-2">Stock Type</label>
               <select
-                className="border rounded-lg p-2 w-full"
+                className="border rounded-lg p-2 w-full shadow-lg focus:outline-none focus:ring-2 focus:ring-[#DDB04B]"
                 value={productType}
                 onChange={(e) => {
                   const type = e.target.value;
@@ -352,7 +434,7 @@ const Ingredients = () => {
             <div className="mb-4">
               <label className="block text-gray-700 text-sm font-bold mb-2">Category</label>
               <select
-                className="border rounded-lg p-2 w-full"
+                className="border rounded-lg p-2 w-full shadow-lg focus:outline-none focus:ring-2 focus:ring-[#DDB04B]"
                 value={newProductCategory}
                 onChange={(e) => {
                   const selectedCategory = e.target.value;
@@ -378,7 +460,7 @@ const Ingredients = () => {
                 <label className="block text-gray-700 text-sm font-bold mb-2">New Category Name</label>
                 <input
                   type="text"
-                  className="border rounded-lg p-2 w-full"
+                  className="border rounded-lg p-2 w-full shadow-lg focus:outline-none focus:ring-2 focus:ring-[#DDB04B]"
                   placeholder="Enter new category name"
                   value={newCategoryName}
                   onChange={(e) => setNewCategoryName(e.target.value)}
@@ -392,7 +474,7 @@ const Ingredients = () => {
                 <label className="block text-gray-700 text-sm font-bold mb-2">Product Name</label>
                 <input
                   type="text"
-                  className="border rounded-lg p-2 w-full"
+                  className="border rounded-lg p-2 w-full shadow-lg focus:outline-none focus:ring-2 focus:ring-[#DDB04B]"
                   placeholder="Enter product name"
                   value={newProductName}
                   onChange={(e) => setNewProductName(e.target.value)}
@@ -405,7 +487,7 @@ const Ingredients = () => {
               <div className="mb-4">
                 <label className="block text-gray-700 text-sm font-bold mb-2">Product Name</label>
                 <select
-                  className="border rounded-lg p-2 w-full"
+                  className="border rounded-lg p-2 w-full shadow-lg focus:outline-none focus:ring-2 focus:ring-[#DDB04B]"
                   value={newProductName}
                   onChange={(e) => {
                     setNewProductName(e.target.value);
@@ -431,7 +513,7 @@ const Ingredients = () => {
               <label className="block text-gray-700 text-sm font-bold mb-2">Quantity</label>
               <input
                 type="number"
-                className="border rounded-lg p-2 w-full"
+                className="border rounded-lg p-2 w-full shadow-lg focus:outline-none focus:ring-2 focus:ring-[#DDB04B]"
                 placeholder="Enter quantity"
                 value={newProductQuantity}
                 onChange={(e) => setNewProductQuantity(e.target.value)}
@@ -440,14 +522,14 @@ const Ingredients = () => {
 
             <button
               onClick={handleSaveNewItem}
-              className="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-md"
+              className="bg-teal-600 hover:bg-teal-800 text-white py-2 px-4 rounded-md shadow-lg focus:outline-none focus:ring-2 focus:ring-[#DDB04B] mr-2"
             >
               Save
             </button>
 
             <button
               onClick={handleCloseModal}
-              className="mt-4 bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded-md"
+              className="mt-4 bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded-md shadow-lg focus:outline-none focus:ring-2 focus:ring-[#DDB04B]"
             >
               Close
             </button>
